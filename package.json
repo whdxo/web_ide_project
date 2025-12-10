@@ -1,0 +1,22 @@
+{
+  "name": "editus-web-ide",
+  "version": "1.0.0",
+  "description": "EditUs Web IDE - Full Stack Development Environment",
+  "scripts": {
+    "dev": "npm-run-all --parallel dev:backend dev:frontend",
+    "dev:backend": "cd backend && ./gradlew bootRun",
+    "dev:frontend": "cd frontend && npm run dev",
+    "mysql": "docker-compose up -d mysql",
+    "mysql:stop": "docker-compose stop mysql",
+    "start": "npm-run-all mysql dev"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whdxo/wed_ide_project.git"
+  },
+  "author": "EditUs Team",
+  "license": "ISC"
+}

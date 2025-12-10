@@ -1,6 +1,7 @@
 HELP.md
 .gradle
 build/
+node_modules/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -38,3 +39,33 @@ out/
 
 ### Claude Code ###
 claude/
+
+### Backend ###
+backend/build/
+backend/.gradle/
+backend/out/
+backend/bin/
+backend/logs/
+
+### Frontend ###
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.production.local
+
+### Environment Variables ###
+.env
+.env.local
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Logs ###
+*.log
+logs/
+
+### Database ###
+*.sql.bak
+dump.sql

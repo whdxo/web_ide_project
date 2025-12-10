@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/editus_dev?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: editus
+    password: editus1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  devtools:
+    restart:
+      enabled: true
+
+jwt:
+  secret: local-dev-secret-key-change-this-in-production-environment-editus-2024
+  expiration: 86400000
+
+cors:
+  allowed-origins: http://localhost:5173,http://localhost:3000
+
+logging:
+  level:
+    com.editus.backend: DEBUG
