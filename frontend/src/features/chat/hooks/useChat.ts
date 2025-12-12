@@ -4,7 +4,7 @@ export const useChat = () => {
   const [messages] = useState([]);
   
   const sendMessage = (text: string) => {
-    // Logic to send message
+    setMessages(prevMessages => [...prevMessages, { text }]);
   };
 
   return { messages, sendMessage };
