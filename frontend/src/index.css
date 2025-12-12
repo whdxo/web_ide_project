@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+@theme {
+  --color-kakao: #FEE500;
+  --color-brand-black: #1F1F1F;
+  --color-brand-navy: #0E1A28;
+  --color-brand-blue: #3545D6;
+  --color-brand-blue-light: #5363EE;
+  --color-brand-lime: #C2F750;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
