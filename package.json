@@ -15,8 +15,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/whdxo/web_ide_project.git"
+    "url": "https://github.com/whdxo/wed_ide_project.git"
   },
   "author": "EditUs Team",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@tanstack/react-query": "^5.90.12"
+  }
 }

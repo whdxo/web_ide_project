@@ -69,3 +69,5 @@ logs/
 ### Database ###
 *.sql.bak
 dump.sql
+
+.env
