@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 export const useChat = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages] = useState([]);
   
   const sendMessage = (text: string) => {
     // Logic to send message
