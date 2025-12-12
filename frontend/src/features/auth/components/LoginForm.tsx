@@ -34,9 +34,9 @@ export const LoginForm = () => {
                 로그인 유지
               </label>
             </div>
-            <a href="#" className="text-brand-blue hover:underline">
+            <Link to="/forgot-password" className="text-brand-blue hover:underline">
               비밀번호 찾기
-            </a>
+            </Link>
           </div>
 
           <Button fullWidth type="submit">
