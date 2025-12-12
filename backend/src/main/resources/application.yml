@@ -10,6 +10,10 @@ server:
     include-message: always
     include-binding-errors: always
 
+jwt:
+  secret: "mySecretKeyForJWTTokenGenerationThatShouldBeLongEnoughForSecurity123!"
+  expiration: 86400000
+
 logging:
   level:
     com.editus.backend: INFO
