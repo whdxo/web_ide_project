@@ -28,13 +28,15 @@ export const LoginForm = () => {
           </div>
 
           <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center text-gray-600">
-              <input type="checkbox" className="mr-2" />
-              로그인 유지
-            </label>
-            <a href="#" className="text-brand-blue hover:underline">
+            <div className="flex items-center text-gray-600">
+              <input type="checkbox" id="keep-logged-in" className="mr-2" />
+              <label htmlFor="keep-logged-in" className="mb-0 cursor-pointer">
+                로그인 유지
+              </label>
+            </div>
+            <Link to="/forgot-password" className="text-brand-blue hover:underline">
               비밀번호 찾기
-            </a>
+            </Link>
           </div>
 
           <Button fullWidth type="submit">
