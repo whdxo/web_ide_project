@@ -1,13 +1,20 @@
+<<<<<<< HEAD
 // import { useState } from 'react'
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
 import './App.css'
+=======
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { LoginForm } from './features/auth/components/LoginForm';
+import { SignupForm } from './features/auth/components/SignupForm';
+>>>>>>> frontend-integration
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EditorPage } from './features/editor/components/EditorPage';
 
 
 function App() {
+<<<<<<< HEAD
   // const [count, setCount] = useState(0)
 
   return (
@@ -40,6 +47,17 @@ function App() {
     //   </p>
     // </>
   )
+=======
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="/signup" element={<SignupForm />} />
+      </Routes>
+    </BrowserRouter>
+  );
+>>>>>>> frontend-integration
 }
 
-export default App
+export default App;

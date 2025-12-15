@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { create } from "zustand";
 import type { EditorFile } from "../types/editor.types";
 
@@ -22,4 +23,16 @@ export const useEditorStore = create<EditorState>((set) => ({
         : state
     ),
   setSaving: (saving) => set({ isSaving: saving }),
+=======
+import { create } from 'zustand';
+
+interface EditorState {
+  activeFileId: string | null;
+  setActiveFileId: (id: string | null) => void;
+}
+
+export const useEditorStore = create<EditorState>((set) => ({
+  activeFileId: null,
+  setActiveFileId: (id) => set({ activeFileId: id }),
+>>>>>>> frontend-integration
 }));
