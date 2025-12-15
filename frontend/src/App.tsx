@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './features/auth/components/LoginForm';
 import { SignupForm } from './features/auth/components/SignupForm';
 import { ProjectSelectionPage } from './pages/project/ProjectSelectionPage';
+import { EditorPage } from './features/editor/components/EditorPage';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<SignupForm />} />
         <Route path="/projects" element={<ProjectSelectionPage />} />
+        <Route path="/editor" element={<EditorPage />} />
       </Routes>
     </BrowserRouter>
   );
