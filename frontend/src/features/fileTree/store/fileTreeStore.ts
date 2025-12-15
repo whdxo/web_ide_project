@@ -1,16 +1,3 @@
-<<<<<<< HEAD
-// import { create } from "zustand";
-// import type { FileNode } from "../types/file.types";
-
-// interface FileTreeState {
-//   tree: FileNode[];
-//   setTree: (tree: FileNode[]) => void;
-// }
-
-// export const useFileTreeStore = create<FileTreeState>((set) => ({
-//   tree: [],
-//   setTree: (tree) => set({ tree }),
-// }));
 import { create } from "zustand";
 import type { FileNode } from "../types/file.types";
 
@@ -81,25 +68,4 @@ export const useFileTreeStore = create<FileTreeState>((set) => ({
     set((state) => ({
       tree: deleteNodeRecursive(state.tree, id),
     })),
-=======
-import { create } from 'zustand';
-
-interface FileTreeState {
-  expandedFolders: Set<string>;
-  toggleFolder: (folderId: string) => void;
-}
-
-export const useFileTreeStore = create<FileTreeState>((set) => ({
-  expandedFolders: new Set(),
-  toggleFolder: (folderId) =>
-    set((state) => {
-      const newExpanded = new Set(state.expandedFolders);
-      if (newExpanded.has(folderId)) {
-        newExpanded.delete(folderId);
-      } else {
-        newExpanded.add(folderId);
-      }
-      return { expandedFolders: newExpanded };
-    }),
->>>>>>> frontend-integration
 }));
