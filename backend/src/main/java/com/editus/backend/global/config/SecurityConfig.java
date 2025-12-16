@@ -39,20 +39,30 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                        // Auth 관련 (인증 불필요)
-                        .requestMatchers("/api/auth/login", "/api/auth/health").permitAll()
-                        // User 관련 (회원가입만 인증 불필요)
-                        .requestMatchers(HttpMethod.POST, "/api/users/join").permitAll()
-                        // WebSocket 채팅 엔드포인트 (인증 불필요)
-                        .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
-                        // 개발 단계이므로 나머지도 모두 허용 (TODO: 나중에 인증 추가)
-                        .anyRequest().permitAll())
-                        // 나머지는 모두 인증 필요, 운영 전환 시 사용
-                        //.anyRequest().authenticated()
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+
+                                // WebSocket 채팅 엔드포인트 (인증 불필요)
+                                .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
+
+                                // Auth 관련 (인증 불필요)
+                                .requestMatchers("/api/auth/login", "/api/auth/health").permitAll()
+
+                                // User 관련 (회원가입만 인증 불필요)
+                                .requestMatchers(HttpMethod.POST, "/api/users/join").permitAll()
+
+                                // 🚧 개발 단계: 전체 허용
+                                .anyRequest().permitAll()
+
+                        // 🔒 운영 전환 시 인증 필수
+                        // .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
