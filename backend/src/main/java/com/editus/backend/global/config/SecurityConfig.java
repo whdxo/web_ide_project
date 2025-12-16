@@ -15,11 +15,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // WebSocket과 개발을 위해 CSRF 비활성화
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/ws-chat/**").permitAll() // WebSocket 엔드포인트 허용
-                        .requestMatchers("/app/**").permitAll() // STOMP 메시지 엔드포인트 허용
-                        .requestMatchers("/topic/**").permitAll() // STOMP 구독 엔드포인트 허용
-                        .anyRequest().permitAll() // 개발 단계이므로 모든 요청 허용
-                );
+                        .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll());
 
         return http.build();
     }
