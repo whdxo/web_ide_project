@@ -4,9 +4,18 @@ import { useNavigate } from 'react-router-dom';
 interface SidebarProps {
   userName?: string;
   onLogout?: () => void;
+  onMenuClick?: (label: string) => void;
 }
 
-export const Sidebar = ({ userName = '영선', onLogout }: SidebarProps) => {
+export const Sidebar = ({ userName = '영선', onLogout, onMenuClick }: SidebarProps) => {
+  const navigate = useNavigate();
+
+  const handleMenuClick = (label: string) => {
+    if (onMenuClick) {
+      onMenuClick(label);
+    }
+  };
+
   const menuItems = [
     { label: '받은 초대장', href: '#' },
     { label: '프로젝트 초대하기', href: '#' },
@@ -34,12 +43,12 @@ export const Sidebar = ({ userName = '영선', onLogout }: SidebarProps) => {
         <ul className="space-y-4">
           {menuItems.map((item) => (
             <li key={item.label}>
-              <a 
-                href={item.href} 
-                className="text-gray-600 hover:text-black font-medium text-sm transition-colors"
+              <button 
+                onClick={() => handleMenuClick(item.label)}
+                className="text-gray-600 hover:text-black font-medium text-sm transition-colors text-left w-full"
               >
                 {item.label}
-              </a>
+              </button>
             </li>
           ))}
         </ul>
