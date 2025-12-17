@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
-import { useTodo } from "../hooks/useTodo";
+import { useTodoStore } from "../store/todoStore";
 import { VscTrash } from "react-icons/vsc";
 
-export function TodoList() {
-  const selectedDate = useScheduleStore((s) => s.selectedDate);
-  const { todosQuery, createTodo, deleteTodo, toggleTodo } = useTodo();
+interface TodoListProps {
+  isMainPage?: boolean;
+}
 
-  const todos = todosQuery.data?.data ?? [];
+export function TodoList({ isMainPage = false }: TodoListProps) {
+  const selectedDate = useScheduleStore((s) => s.selectedDate);
+  const { todos, addTodo, removeTodo, toggleTodo } = useTodoStore();
+
   const todayTodos = todos.filter((t) => t.dueDate === selectedDate);
 
   // 🔹 모달 상태
@@ -27,20 +30,16 @@ export function TodoList() {
   const handleCreateTodo = () => {
     if (!title.trim()) return;
 
-    createTodo.mutate(
-      {
-        title,
-        description,
-        priority,
-        dueDate: selectedDate,
-      },
-      {
-        onSuccess: () => {
-          resetForm();
-          setIsModalOpen(false);
-        },
-      }
-    );
+    addTodo({
+      title,
+      description,
+      priority,
+      dueDate: selectedDate,
+      projectName: "Web IDE Project", // 현재는 하드코딩, 나중에 실제 프로젝트명으로 변경 필요
+    });
+    
+    resetForm();
+    setIsModalOpen(false);
   };
 
   return (
@@ -68,7 +67,7 @@ export function TodoList() {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => toggleTodo.mutate(todo.id)}
+                  onChange={() => toggleTodo(todo.id)}
                   className="accent-blue-500"
                 />
 
@@ -76,12 +75,17 @@ export function TodoList() {
                 <span
                   className={todo.completed ? "line-through" : ""}
                 >
+                  {isMainPage && todo.projectName ? (
+                    <span className="font-bold text-gray-300 mr-1">
+                      ({todo.projectName})
+                    </span>
+                  ) : null}
                   {todo.title}
                 </span>
               </div>
 
               <button
-                onClick={() => deleteTodo.mutate(todo.id)}
+                onClick={() => removeTodo(todo.id)}
                 className="p-1 hover:bg-red-600 rounded"
               >
                 <VscTrash size={14} />
@@ -90,13 +94,14 @@ export function TodoList() {
           ))}
         </ul>
 
-
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="mt-3 w-full bg-gray-700 rounded py-1 text-xs hover:bg-gray-600"
-        >
-          + TODO 추가
-        </button>
+        {!isMainPage && (
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-3 w-full bg-gray-700 rounded py-1 text-xs hover:bg-gray-600"
+          >
+            + TODO 추가
+          </button>
+        )}
       </div>
 
       {/* ===== TODO 생성 모달 ===== */}

@@ -1,6 +1,7 @@
 // editor 전체 페이지
 import { FileTree } from "../../fileTree/components/FileTree";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { EditorTabs } from "./EditorTabs";
 import { IoChatbubbleEllipsesOutline, IoCalendarOutline, IoSettingsOutline } from "react-icons/io5";
@@ -15,10 +16,17 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 
 
 export function EditorPage() {
+  const location = useLocation();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
 
   type RightPanelType = "chat" | "todo" | "ai" | "settings" | null;
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null);
+
+  useEffect(() => {
+    if (location.state?.openPanel) {
+      setRightPanel(location.state.openPanel as RightPanelType);
+    }
+  }, [location.state]);
 
   const togglePanel = (panel: RightPanelType) => {
     setRightPanel((prev) => (prev === panel ? null : panel));

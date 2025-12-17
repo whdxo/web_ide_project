@@ -12,7 +12,7 @@ export const ProjectCard = ({ title, description, onClick }: ProjectCardProps) =
       onClick={onClick}
       className="
         group
-        w-64 h-48 
+        w-full h-48 
         bg-white 
         rounded-2xl 
         flex flex-col items-center justify-center 
@@ -21,11 +21,10 @@ export const ProjectCard = ({ title, description, onClick }: ProjectCardProps) =
         hover:bg-brand-blue hover:scale-105 hover:shadow-xl
       "
     >
-      <h3 className="text-2xl font-bold text-black group-hover:text-white transition-colors duration-300">
+      <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-center whitespace-pre-wrap text-black group-hover:text-white transition-colors duration-300">
         {title}
       </h3>
-      <p className="mt-2 text-sm text-transparent group-hover:text-white/80 transition-colors duration-300">
-        {description || '프로젝트 열기'}
+      <p className="mt-2 text-xs sm:text-sm text-center text-transparent group-hover:text-white/80 transition-colors duration-300">
       </p>
     </div>
   );
