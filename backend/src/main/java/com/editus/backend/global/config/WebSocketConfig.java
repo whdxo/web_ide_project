@@ -1,6 +1,6 @@
 package com.editus.backend.global.config;
 import org.springframework.context.annotation.Configuration;
 @Configuration
-public class SecurityConfig {
-    // TODO: 이세종 - Spring Security 설정 구현
+public class WebSocketConfig {
+    // TODO: 방영진 - WebSocket 설정 구현
 }

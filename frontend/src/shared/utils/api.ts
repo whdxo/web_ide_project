@@ -2,13 +2,13 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// 요청 인터셉터: JWT 토큰 자동 추가
+// 요청 인터셉터
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -17,12 +17,11 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// 응답 인터셉터: 에러 처리
+// 응답 인터셉터
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // 토큰 만료 -> 로그아웃 처리
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
