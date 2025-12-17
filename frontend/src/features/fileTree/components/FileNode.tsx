@@ -25,20 +25,23 @@ export function FileNode({
   const setActiveFile = useEditorStore((s) => s.setActiveFile);
   const { addNode, deleteNode } = useFileTreeStore();
 
+  const openFile = useEditorStore((s) => s.openFile);
+
   const handleClick = () => {
     if (node.type === "file") {
-      setActiveFile({
+      openFile({
         id: node.id,
         name: node.name,
         path: node.path,
         language: "typescript",
-        content: "// 새 파일",
+        content: "// TODO: 파일 내용 로드",
         updatedAt: new Date().toISOString(),
       });
     } else {
       setOpen((o) => !o);
     }
   };
+
 
   return (
     <>
