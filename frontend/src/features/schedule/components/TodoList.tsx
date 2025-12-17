@@ -1,4 +1,140 @@
-// TODO: 박유경 - Todo 목록 컴포넌트 구현
-export const TodoList = () => {
-  return <div>Todo List</div>;
-};
+import { useState } from "react";
+import { useScheduleStore } from "../store/scheduleStore";
+import { useTodo } from "../hooks/useTodo";
+import { VscTrash } from "react-icons/vsc";
+
+export function TodoList() {
+  const selectedDate = useScheduleStore((s) => s.selectedDate);
+  const { todosQuery, createTodo, deleteTodo, toggleTodo } = useTodo();
+
+  const todos = todosQuery.data?.data ?? [];
+  const todayTodos = todos.filter((t) => t.dueDate === selectedDate);
+
+  // 🔹 모달 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 🔹 입력 상태
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
+
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setPriority("MEDIUM");
+  };
+
+  const handleCreateTodo = () => {
+    if (!title.trim()) return;
+
+    createTodo.mutate(
+      {
+        title,
+        description,
+        priority,
+        dueDate: selectedDate,
+      },
+      {
+        onSuccess: () => {
+          resetForm();
+          setIsModalOpen(false);
+        },
+      }
+    );
+  };
+
+  return (
+    <>
+      {/* ===== Todo List ===== */}
+      <div className="p-3 text-sm">
+        <h3 className="font-semibold mb-2">Todo List</h3>
+
+        {todayTodos.length === 0 && (
+          <p className="text-xs text-gray-400">
+            등록된 TODO가 없습니다.
+          </p>
+        )}
+
+        <ul className="space-y-1">
+          {todayTodos.map((todo) => (
+            <li
+              key={todo.id}
+              className={`flex items-center justify-between rounded px-2 py-1 text-xs
+                ${todo.completed ? "bg-gray-900 text-gray-500" : "bg-gray-800"}
+              `}
+            >
+              <div className="flex items-center gap-2">
+                {/* 체크박스 */}
+                <input
+                  type="checkbox"
+                  checked={todo.completed}
+                  onChange={() => toggleTodo.mutate(todo.id)}
+                  className="accent-blue-500"
+                />
+
+                {/* 제목 */}
+                <span
+                  className={todo.completed ? "line-through" : ""}
+                >
+                  {todo.title}
+                </span>
+              </div>
+
+              <button
+                onClick={() => deleteTodo.mutate(todo.id)}
+                className="p-1 hover:bg-red-600 rounded"
+              >
+                <VscTrash size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+
+
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="mt-3 w-full bg-gray-700 rounded py-1 text-xs hover:bg-gray-600"
+        >
+          + TODO 추가
+        </button>
+      </div>
+
+      {/* ===== TODO 생성 모달 ===== */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-80 rounded-md bg-[#1f1f1f] border border-gray-700 p-4 text-sm">
+            <h2 className="font-semibold mb-3">새 TODO</h2>
+
+            {/* todo 입력 */}
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="TODO 입력"
+              className="w-full mb-2 rounded bg-gray-800 px-2 py-1 text-xs outline-none"
+              autoFocus
+            />
+
+            {/* 버튼 */}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  resetForm();
+                  setIsModalOpen(false);
+                }}
+                className="px-3 py-1 text-xs rounded bg-gray-700 hover:bg-gray-600"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleCreateTodo}
+                className="px-3 py-1 text-xs rounded bg-blue-600 hover:bg-blue-500"
+              >
+                생성
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

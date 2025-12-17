@@ -1,38 +1,68 @@
-// import { create } from "zustand";
-// import type { EditorFile } from "../types/editor.types";
+import { create } from "zustand";
 
-// interface EditorState {
-//   activeFile: EditorFile | null;
-//   isSaving: boolean;
-
-//   setActiveFile: (file: EditorFile) => void;
-//   updateContent: (content: string) => void;
-//   setSaving: (saving: boolean) => void;
-// }
-
-// export const useEditorStore = create<EditorState>((set) => ({
-//   activeFile: null,
-//   isSaving: false,
-
-//   setActiveFile: (file) => set({ activeFile: file }),
-//   updateContent: (content) =>
-//     set((state) =>
-//       state.activeFile
-//         ? { activeFile: { ...state.activeFile, content } }
-//         : state
-//     ),
-//   setSaving: (saving) => set({ isSaving: saving }),
-// }));
-
-
-import { create } from 'zustand';
-
-interface EditorState {
-  activeFileId: string | null;
-  setActiveFileId: (id: string | null) => void;
+export interface EditorFile {
+  id: string;
+  name: string;
+  path: string;
+  language: string;
+  content: string;
+  updatedAt: string;
 }
 
-export const useEditorStore = create<EditorState>((set) => ({
+interface EditorState {
+  openFiles: EditorFile[];
+  activeFileId: string | null;
+
+  openFile: (file: EditorFile) => void;
+  closeFile: (fileId: string) => void;
+  setActiveFile: (fileId: string) => void;
+
+  updateContent: (fileId: string, content: string) => void;
+}
+
+export const useEditorStore = create<EditorState>((set, get) => ({
+  openFiles: [],
   activeFileId: null,
-  setActiveFileId: (id) => set({ activeFileId: id }),
+
+  /** 파일 열기 (탭 생성 or 포커스) */
+  openFile: (file) => {
+    const { openFiles } = get();
+    const exists = openFiles.find((f) => f.id === file.id);
+
+    if (exists) {
+      set({ activeFileId: file.id });
+    } else {
+      set({
+        openFiles: [...openFiles, file],
+        activeFileId: file.id,
+      });
+    }
+  },
+
+  /** 탭 닫기 */
+  closeFile: (fileId) => {
+    const { openFiles, activeFileId } = get();
+    const newFiles = openFiles.filter((f) => f.id !== fileId);
+
+    set({
+      openFiles: newFiles,
+      activeFileId:
+        activeFileId === fileId
+          ? newFiles.at(-1)?.id ?? null
+          : activeFileId,
+    });
+  },
+
+  /** 탭 클릭 */
+  setActiveFile: (fileId) => set({ activeFileId: fileId }),
+
+  /** 🔥 에디터 내용 변경 */
+  updateContent: (fileId, content) =>
+    set((state) => ({
+      openFiles: state.openFiles.map((file) =>
+        file.id === fileId
+          ? { ...file, content }
+          : file
+      ),
+    })),
 }));

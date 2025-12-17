@@ -6,12 +6,23 @@ import { EditorTabs } from "./EditorTabs";
 import { IoChatbubbleEllipsesOutline, IoCalendarOutline, IoSettingsOutline } from "react-icons/io5";
 import { RiRobot2Fill } from "react-icons/ri";
 import { VscFiles, VscSave } from "react-icons/vsc";
+import { ChatPanel } from "@/features/chat/components/ChatPanel";
+import { TodoList } from "@/features/schedule/components/TodoList";
+import { AIReviewPanel } from "@/features/ai/components/AIReviewPanel";
+import { Terminal } from "@/features/terminal/components/Terminal";
+import { SprintView } from "@/features/schedule/components/SprintView";
+import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 
 
 export function EditorPage() {
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
 
+  type RightPanelType = "chat" | "todo" | "ai" | "settings" | null;
+  const [rightPanel, setRightPanel] = useState<RightPanelType>(null);
+
+  const togglePanel = (panel: RightPanelType) => {
+    setRightPanel((prev) => (prev === panel ? null : panel));
+  };
 
   return (
     <div className="h-screen bg-[#0f111a] text-gray-100 overflow-hidden flex flex-col">
@@ -24,33 +35,48 @@ export function EditorPage() {
 
         {/* 오른쪽 사이드 패널 */}
         <button
-            onClick={() => setIsRightPanelOpen((prev) => !prev)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-            >
-            <IoChatbubbleEllipsesOutline size={20} />
+          onClick={() => togglePanel("chat")}
+          className={`p-2 rounded-md ${
+            rightPanel === "chat"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <IoChatbubbleEllipsesOutline size={20} />
         </button>
 
         <button
-            onClick={() => setIsRightPanelOpen((prev) => !prev)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-            >
-            <IoCalendarOutline size={20} />
+          onClick={() => togglePanel("todo")}
+          className={`p-2 rounded-md ${
+            rightPanel === "todo"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <IoCalendarOutline size={20} />
         </button>
 
         <button
-            onClick={() => setIsRightPanelOpen((prev) => !prev)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-            >
-            <RiRobot2Fill size={20} />
+          onClick={() => togglePanel("ai")}
+          className={`p-2 rounded-md ${
+            rightPanel === "ai"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <RiRobot2Fill size={20} />
         </button>
 
         <button
-            onClick={() => setIsRightPanelOpen((prev) => !prev)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-md text-gray-300"
-            >
-            <IoSettingsOutline size={20} />
+          onClick={() => togglePanel("settings")}
+          className={`p-2 rounded-md ${
+            rightPanel === "settings"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+          }`}
+        >
+          <IoSettingsOutline size={20} />
         </button>
-
         </div>
       </header>
 
@@ -105,21 +131,25 @@ export function EditorPage() {
           </div>
 
           {/* 터미널 영역 */}
-          <div className="h-40 bg-[#181818] border-t border-gray-800 flex items-center justify-center text-sm">
-            TERMINAL 자리
+          <div className="h-40 border-t border-gray-800">
+            <Terminal />
           </div>
+
         </main>
 
         {/* 우측 패널(토글) */}
-        {isRightPanelOpen && (
+        {rightPanel && (
           <aside className="w-80 bg-[#1f1f1f] border-l border-gray-800 flex flex-col">
-            <div className="p-4 border-b border-gray-700">
-              <h2 className="font-semibold">우측 패널</h2>
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-3 text-sm">
-              {/* 여기에 채팅 / todo / AI 컴포넌트 들어갈 예정 */}
-              패널 내용
+            <div className="flex-1 overflow-y-auto">
+              {rightPanel === "chat" && <ChatPanel />}
+              {rightPanel === "todo" && (
+                <>
+                  <SprintView/>
+                  <TodoList />
+                </>
+              )}
+              {rightPanel === "ai" && <AIReviewPanel />}
+              {rightPanel === "settings" && <SettingsPanel/>}
             </div>
           </aside>
         )}
