@@ -1,6 +1,9 @@
+export type FileType = "file" | "folder";
+
 export interface FileNode {
   id: string;
   name: string;
-  type: 'FILE' | 'DIRECTORY';
+  type: FileType;
+  path: string;
   children?: FileNode[];
 }

@@ -71,3 +71,6 @@ logs/
 dump.sql
 
 .env
+
+### Documentation ###
+EDITUS_CONTEXT.md
