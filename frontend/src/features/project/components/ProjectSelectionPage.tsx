@@ -24,7 +24,6 @@ export const ProjectSelectionPage = () => {
             <ProjectCard
               key={project.id}
               title={project.title}
-              description="마우스 오버 시"
               onClick={() => handleProjectClick(project.id)}
             />
           ))}

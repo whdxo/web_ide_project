@@ -25,7 +25,6 @@ export const ProjectCard = ({ title, description, onClick }: ProjectCardProps) =
         {title}
       </h3>
       <p className="mt-2 text-sm text-transparent group-hover:text-white/80 transition-colors duration-300">
-        {description || '프로젝트 열기'}
       </p>
     </div>
   );
