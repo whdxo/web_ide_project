@@ -1,5 +1,7 @@
 package com.editus.backend.domain.project.controller;
+
 import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/projects")
 public class ProjectController {
