@@ -23,6 +23,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final com.editus.backend.global.security.oauth.CustomOAuth2UserService customOAuth2UserService;
+    private final com.editus.backend.global.security.oauth.OAuth2SuccessHandler oAuth2SuccessHandler;
 
     /**
      * 중요! PasswordEncoder Bean 정의
@@ -50,12 +52,19 @@ public class SecurityConfig {
                         // User 관련 (회원가입만 인증 불필요)
                         .requestMatchers(HttpMethod.POST, "/api/users/join").permitAll()
 
+                        // OAuth2 관련
+                        .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
+
                         // 🚧 개발 단계: 전체 허용
                         .anyRequest().permitAll()
 
                 // 🔒 운영 전환 시 인증 필수
                 // .anyRequest().authenticated()
                 )
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService))
+                        .successHandler(oAuth2SuccessHandler))
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
