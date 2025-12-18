@@ -19,6 +19,10 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+app:
+  oauth2:
+    authorized-redirect-uris: https://goormeditus.com/oauth/callback
             
   datasource:
     url: jdbc:mysql://editus-mysql:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
