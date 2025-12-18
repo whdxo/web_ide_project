@@ -20,10 +20,6 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-app:
-  oauth2:
-    authorized-redirect-uris: https://goormeditus.com/oauth/callback
-            
   datasource:
     url: jdbc:mysql://editus-mysql:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: ${DB_USER:editus}
@@ -37,6 +33,10 @@ app:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect # spring boot 4 에서 사용
+
+app:
+  oauth2:
+    authorized-redirect-uris: https://goormeditus.com/oauth/callback
 
 jwt:
   secret: ${JWT_SECRET}
