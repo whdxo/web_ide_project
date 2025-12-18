@@ -2,6 +2,7 @@ package com.editus.backend.domain.auth.entity;
 // TODO: 이세종 - User 엔티티 구현
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -24,8 +25,23 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 
-    @Column(nullable = false)
+    @Column(length = 100)
     private String password;
+
+    @Column(length = 20)
+    private String provider; // google, kakao, naver
+
+    @Column(name = "provider_id", length = 50)
+    private String providerId; // sub(google), id(kakao)
+
+    @Builder
+    public User(String name, String email, String password, String provider, String providerId) {
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.provider = provider;
+        this.providerId = providerId;
+    }
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
