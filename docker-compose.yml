@@ -18,7 +18,7 @@ services:
     networks:
       - editus-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
 
@@ -45,6 +45,7 @@ services:
       - editus-network
     volumes:
       - ./backend/logs:/app/logs
+      - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
 
   jenkins:
     build:
