@@ -3,7 +3,6 @@ package com.editus.backend.domain.auth.service;
 import com.editus.backend.domain.auth.dto.*;
 import com.editus.backend.domain.auth.entity.User;
 import com.editus.backend.domain.auth.repository.UserRepository;
-import com.editus.backend.global.exception.DuplicateEmailException;
 import com.editus.backend.global.exception.UserNotFoundException;
 import com.editus.backend.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +19,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-
 
     @Transactional(readOnly = true)
     public LoginResponse loginUser(UserLoginDto dto) {
@@ -39,8 +37,7 @@ public class AuthService {
                 user.getUserId(),
                 user.getName(),
                 user.getEmail(),
-                user.getCreatedAt()
-        );
+                user.getCreatedAt());
 
         log.info("로그인 성공: email={}", dto.getEmail());
         return new LoginResponse(token, userInfo);
@@ -75,7 +72,7 @@ public class AuthService {
 
         log.info("토큰 재발급 완료: email={}", email);
 
-        return new TokenRefreshResponse(newToken, 86400);  // 24시간 = 86400초
+        return new TokenRefreshResponse(newToken, 86400); // 24시간 = 86400초
     }
 
 }

@@ -5,7 +5,6 @@ import com.editus.backend.domain.auth.entity.User;
 import com.editus.backend.domain.auth.repository.UserRepository;
 import com.editus.backend.global.exception.DuplicateEmailException;
 import com.editus.backend.global.exception.UserNotFoundException;
-import com.editus.backend.global.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +31,7 @@ public class UserService {
         user.setName(dto.getName());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setProvider("local"); // 일반 회원가입은 provider를 local로 설정
 
         User savedUser = userRepository.save(user);
         log.info("회원가입 완료: userId={}", savedUser.getUserId());
@@ -40,8 +40,7 @@ public class UserService {
                 savedUser.getUserId(),
                 savedUser.getName(),
                 savedUser.getEmail(),
-                savedUser.getCreatedAt()
-        );
+                savedUser.getCreatedAt());
     }
 
     @Transactional
@@ -61,8 +60,7 @@ public class UserService {
                 updatedUser.getUserId(),
                 updatedUser.getName(),
                 updatedUser.getEmail(),
-                updatedUser.getCreatedAt()
-        );
+                updatedUser.getCreatedAt());
     }
 
     @Transactional
@@ -86,7 +84,6 @@ public class UserService {
                 user.getUserId(),
                 user.getName(),
                 user.getEmail(),
-                user.getCreatedAt()
-        );
+                user.getCreatedAt());
     }
 }
