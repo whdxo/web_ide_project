@@ -47,7 +47,7 @@ services:
       - editus-network
     volumes:
       - ./backend/logs:/app/logs
-      - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
+      # - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
 
   jenkins:
     build:
