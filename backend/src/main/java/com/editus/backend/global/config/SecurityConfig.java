@@ -1,6 +1,5 @@
 package com.editus.backend.global.config;
 
-
 import com.editus.backend.global.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -39,30 +38,31 @@ public class SecurityConfig {
         return http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                                // WebSocket 채팅 엔드포인트 (인증 불필요)
-                                .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
+                        // WebSocket 채팅 엔드포인트 (인증 불필요)
+                        .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
 
-                                // Auth 관련 (인증 불필요)
-                                .requestMatchers("/api/auth/login", "/api/auth/health").permitAll()
+                        // Auth 관련 (인증 불필요)
+                        .requestMatchers("/api/auth/login", "/api/auth/health").permitAll()
 
-                                // User 관련 (회원가입만 인증 불필요)
-                                .requestMatchers(HttpMethod.POST, "/api/users/join").permitAll()
+                        // User 관련 (회원가입만 인증 불필요)
+                        .requestMatchers(HttpMethod.POST, "/api/users/join").permitAll()
 
-                                // 🚧 개발 단계: 전체 허용
-                                .anyRequest().permitAll()
+                        // 🚧 개발 단계: 전체 허용
+                        .anyRequest().permitAll()
 
-                        // 🔒 운영 전환 시 인증 필수
-                        // .anyRequest().authenticated()
+                // 🔒 운영 전환 시 인증 필수
+                // .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${CORS_ORIGINS:}")
+    private String corsOriginsEnv;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -70,12 +70,18 @@ public class SecurityConfig {
 
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:3001");
-
         configuration.addAllowedOrigin("http://localhost:5173"); // Vite 개발 서버
 
-        // 운영환경 (나중에 추가)
-        // configuration.addAllowedOrigin("https://your-s3-domain.com");
-        // configuration.addAllowedOrigin("https://your-custom-domain.com");
+        configuration.addAllowedOrigin("https://goormeditus.com"); // 운영 도메인
+
+        // 환경변수에서 추가된 Origin 처리
+        if (corsOriginsEnv != null && !corsOriginsEnv.isBlank()) {
+            for (String origin : corsOriginsEnv.split(",")) {
+                if (!origin.isBlank()) {
+                    configuration.addAllowedOrigin(origin.trim());
+                }
+            }
+        }
 
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
