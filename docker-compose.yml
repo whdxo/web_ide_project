@@ -22,6 +22,15 @@ services:
       timeout: 20s
       retries: 10
 
+  redis:
+    image: redis:alpine
+    container_name: editus-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - editus-network
+
   backend:
     build:
       context: ./backend
@@ -31,6 +40,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-dev}
       DB_HOST: mysql
+      REDIS_HOST: redis
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
@@ -43,6 +53,8 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_started
     networks:
       - editus-network
     volumes:
