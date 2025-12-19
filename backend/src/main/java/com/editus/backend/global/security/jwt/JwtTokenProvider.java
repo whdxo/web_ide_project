@@ -18,16 +18,28 @@ public class JwtTokenProvider {
     private final long jwtExpiration;
 
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey,
-                            @Value("${jwt.expiration}") long jwtExpiration) {
+            @Value("${jwt.expiration}") long jwtExpiration) {
         this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
         this.jwtExpiration = jwtExpiration;
 
         log.info("JWT 토큰 프로바이더 초기화 완료. 만료시간: {}ms", jwtExpiration);
     }
 
-    public String createToken(String email) {
+    public String createAccessToken(String email) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Date expiryDate = new Date(now.getTime() + jwtExpiration); // 30분
+
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(secretKey, Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String createRefreshToken(String email) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 1209600000L); // 14일 (밀리초)
 
         return Jwts.builder()
                 .subject(email)
