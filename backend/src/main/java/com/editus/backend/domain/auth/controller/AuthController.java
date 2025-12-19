@@ -28,13 +28,14 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(Authentication authentication) {
         log.info("로그아웃 요청: email={}", authentication.getName());
+        authService.logout(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("로그아웃 되었습니다"));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(Authentication authentication) {
-        log.info("토큰 재발급 요청: email={}", authentication.getName());
-        TokenRefreshResponse tokenRefreshResponse = authService.refreshToken(authentication.getName());
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(@RequestBody TokenRefreshRequest request) {
+        log.info("토큰 재발급 요청");
+        TokenRefreshResponse tokenRefreshResponse = authService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(ApiResponse.success(tokenRefreshResponse));
     }
 

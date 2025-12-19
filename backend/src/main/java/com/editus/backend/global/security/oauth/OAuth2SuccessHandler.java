@@ -1,8 +1,11 @@
 package com.editus.backend.global.security.oauth;
 
+import com.editus.backend.domain.auth.entity.User;
+import com.editus.backend.domain.auth.repository.UserRepository;
 import com.editus.backend.global.security.jwt.JwtTokenProvider;
+import com.editus.backend.global.security.jwt.RefreshToken;
+import com.editus.backend.global.security.jwt.RefreshTokenRepository;
 import com.editus.backend.global.security.oauth.user.KakaoUserInfo;
-import com.editus.backend.global.security.oauth.user.OAuth2UserInfo;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -25,6 +27,8 @@ import java.util.Map;
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final RefreshTokenRepository refreshTokenRepository;
+  private final UserRepository userRepository;
 
   @Value("${app.oauth2.authorized-redirect-uris:http://localhost:5173/oauth/callback}")
   private String redirectUri;
@@ -48,13 +52,26 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
       throw new IllegalArgumentException("이메일을 찾을 수 없습니다.");
     }
 
-    log.info("OAuth2 Login Success. Generating Token for: {}", email);
+    log.info("OAuth2 Login Success. Generating Tokens for: {}", email);
 
-    String token = jwtTokenProvider.createToken(email);
+    // Access Token & Refresh Token 생성
+    String accessToken = jwtTokenProvider.createAccessToken(email);
+    String refreshToken = jwtTokenProvider.createRefreshToken(email);
 
-    // Frontend로 리다이렉트
+    // Refresh Token을 Redis에 저장
+    User user = userRepository.findByEmail(email).orElseThrow();
+    refreshTokenRepository.deleteByEmail(email); // 기존 토큰 삭제
+    RefreshToken refreshTokenEntity = RefreshToken.builder()
+        .token(refreshToken)
+        .email(email)
+        .userId(user.getUserId())
+        .build();
+    refreshTokenRepository.save(refreshTokenEntity);
+
+    // Frontend로 리다이렉트 (두 토큰 모두 전달)
     String targetUrl = UriComponentsBuilder.fromUriString(redirectUri)
-        .queryParam("token", token)
+        .queryParam("accessToken", accessToken)
+        .queryParam("refreshToken", refreshToken)
         .build().toUriString();
 
     getRedirectStrategy().sendRedirect(request, response, targetUrl);
