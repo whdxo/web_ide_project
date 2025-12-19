@@ -20,6 +20,11 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: 6379
+
   datasource:
     url: jdbc:mysql://editus-mysql:3306/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
     username: ${DB_USER:editus}
