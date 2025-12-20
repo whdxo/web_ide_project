@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
 import { useTodoStore } from "../store/todoStore";
 import { VscTrash } from "react-icons/vsc";
@@ -9,9 +9,14 @@ interface TodoListProps {
 
 export function TodoList({ isMainPage = false }: TodoListProps) {
   const selectedDate = useScheduleStore((s) => s.selectedDate);
-  const { todos, addTodo, removeTodo, toggleTodo } = useTodoStore();
+  const { todos, loading, fetchTodos, addTodo, removeTodo, toggleTodo } = useTodoStore();
 
-  const todayTodos = todos.filter((t) => t.dueDate === selectedDate);
+  // 선택된 날짜가 변경될 때마다 Todo 조회
+  useEffect(() => {
+    fetchTodos(selectedDate);
+  }, [selectedDate, fetchTodos]);
+
+  const todayTodos = todos; // 이미 서버에서 필터링되어 옴
 
   // 🔹 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,17 +32,13 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
     setPriority("MEDIUM");
   };
 
-  const handleCreateTodo = () => {
+  const handleCreateTodo = async () => {
     if (!title.trim()) return;
 
-    addTodo({
-      title,
-      description,
-      priority,
-      dueDate: selectedDate,
-      projectName: "Web IDE Project", // 현재는 하드코딩, 나중에 실제 프로젝트명으로 변경 필요
-    });
-    
+    const priorityNum = priority === "LOW" ? 0 : priority === "HIGH" ? 2 : 1;
+
+    await addTodo(title, selectedDate, priorityNum);
+
     resetForm();
     setIsModalOpen(false);
   };
@@ -48,7 +49,13 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
       <div className="p-3 text-sm">
         <h3 className="font-semibold mb-2">Todo List</h3>
 
-        {todayTodos.length === 0 && (
+        {loading && (
+          <p className="text-xs text-gray-400">
+            로딩 중...
+          </p>
+        )}
+
+        {!loading && todayTodos.length === 0 && (
           <p className="text-xs text-gray-400">
             등록된 TODO가 없습니다.
           </p>
