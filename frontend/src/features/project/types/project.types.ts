@@ -1,19 +1,30 @@
 import type { ApiResponse } from '@/shared/types/common.types';
 
 export interface Project {
-  project_id: number;
+  id: number;
   name: string;
-  owner_id: number;
-  description: string;
-  created_at: string;
+  description?: string;
+  language: string;
+  type: 'PERSONAL' | 'TEAM';
+  ownerId: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateProjectRequest {
   name: string;
-  description: string;
-  owner_id: number;
-  startDate: string;
-  endDate: string;
+  description?: string;
+  language: string;
+  type: 'PERSONAL' | 'TEAM';
+}
+
+export interface JoinProjectRequest {
+  inviteCode: string;
+}
+
+export interface InviteCodeResponse {
+  inviteCode: string;
+  expiresAt: string;
 }
 
 export interface ProjectMember {
@@ -29,5 +40,9 @@ export interface AddMemberRequest {
 }
 
 export type CreateProjectResponse = ApiResponse<Project>;
+export type GetProjectsResponse = ApiResponse<Project[]>;
 export type GetProjectMembersResponse = ApiResponse<ProjectMember[]>;
 export type AddMemberResponse = ApiResponse<ProjectMember>;
+export type JoinProjectResponse = ApiResponse<void>;
+export type CreateInviteCodeResponse = ApiResponse<InviteCodeResponse>;
+

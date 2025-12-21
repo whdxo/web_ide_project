@@ -1,4 +1,4 @@
-import { apiClient } from '@/shared/utils/api';
+import { apiClient } from './client';
 import type { ApiResponse } from '@/shared/types/common.types';
 import type { 
   GetSprintsResponse, 
@@ -12,7 +12,7 @@ import type {
   CreateTaskResponse, 
   UpdateTaskStatusRequest, 
   UpdateTaskAssigneeRequest 
-} from '../types/schedule.types';
+} from '@/features/schedule/types/schedule.types';
 
 export const scheduleApi = {
   // Sprints

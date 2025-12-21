@@ -1,16 +1,32 @@
-import { apiClient } from '@/shared/utils/api';
+import { apiClient } from './client';
 import type { ApiResponse } from '@/shared/types/common.types';
 import type { 
   CreateProjectRequest, 
   CreateProjectResponse, 
+  GetProjectsResponse,
   GetProjectMembersResponse, 
   AddMemberRequest, 
-  AddMemberResponse 
-} from '../types/project.types';
+  AddMemberResponse,
+  JoinProjectRequest,
+  JoinProjectResponse,
+  CreateInviteCodeResponse
+} from '@/features/project/types/project.types';
 
 export const projectApi = {
+  getProjects: async (): Promise<GetProjectsResponse> => {
+    const response = await apiClient.get<GetProjectsResponse>('/api/projects');
+    return response.data;
+  },
   createProject: async (data: CreateProjectRequest): Promise<CreateProjectResponse> => {
     const response = await apiClient.post<CreateProjectResponse>('/api/projects', data);
+    return response.data;
+  },
+  joinProject: async (data: JoinProjectRequest): Promise<JoinProjectResponse> => {
+    const response = await apiClient.post<JoinProjectResponse>('/api/projects/join', data);
+    return response.data;
+  },
+  createInviteCode: async (projectId: number): Promise<CreateInviteCodeResponse> => {
+    const response = await apiClient.post<CreateInviteCodeResponse>(`/api/projects/${projectId}/invite`);
     return response.data;
   },
   getProjectMembers: async (projectId: number): Promise<GetProjectMembersResponse> => {
@@ -26,3 +42,4 @@ export const projectApi = {
     return response.data;
   }
 };
+

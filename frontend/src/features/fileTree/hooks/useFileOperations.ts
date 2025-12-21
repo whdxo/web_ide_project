@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fileApi } from '../api/fileApi';
+import { fileApi } from '@/shared/api/fileApi';
 
 export const useFileOperations = () => {
   const queryClient = useQueryClient();

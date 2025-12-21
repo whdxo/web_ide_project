@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { editorApi } from '../api/editorApi';
+import { editorApi } from '@/shared/api/editorApi';
 
 export const useFileContent = (fileId: string) => {
   return useQuery({

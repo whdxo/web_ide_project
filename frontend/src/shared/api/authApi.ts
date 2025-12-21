@@ -1,12 +1,14 @@
-import { apiClient } from '@/shared/utils/api';
+import { apiClient } from './client';
 import type { 
   LoginRequest, 
   LoginResponse, 
   LogoutResponse, 
   RefreshResponse, 
   PasswordChangeRequest, 
-  PasswordChangeResponse 
-} from '../types/auth.types';
+  PasswordChangeResponse,
+  JoinRequest,
+  JoinResponse
+} from '@/features/auth/types/auth.types';
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {
@@ -23,6 +25,10 @@ export const authApi = {
   },
   changePassword: async (data: PasswordChangeRequest): Promise<PasswordChangeResponse> => {
     const response = await apiClient.put<PasswordChangeResponse>('/api/auth/password', data);
+    return response.data;
+  },
+  signup: async (data: JoinRequest): Promise<JoinResponse> => {
+    const response = await apiClient.post<JoinResponse>('/api/users/join', data);
     return response.data;
   }
 };

@@ -1,9 +1,20 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 
 export const SignupForm = () => {
+  const navigate = useNavigate();
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: 실제 회원가입 API 연동 필요
+    // 유효성 검사 로직 추가 가능
+
+    alert("회원가입이 완료되었습니다.");
+    navigate('/login');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-black">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-[2rem] shadow-lg">
@@ -12,7 +23,7 @@ export const SignupForm = () => {
           <p className="mt-2 text-gray-500 text-sm">EditUs와 함께 개발을 시작해보세요</p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="mt-8 space-y-6" onSubmit={handleSignup}>
           <div className="space-y-4">
             <Input 
               label="이름" 

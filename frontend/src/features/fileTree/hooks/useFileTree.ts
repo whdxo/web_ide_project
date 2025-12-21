@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fileApi } from '../api/fileApi';
+import { fileApi } from '@/shared/api/fileApi';
 
 export const useFileTree = (projectId: string) => {
   return useQuery({
