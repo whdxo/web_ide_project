@@ -66,7 +66,7 @@
 import { useEffect, useRef } from "react";
 import { Client } from "@stomp/stompjs";
 import { useChatStore } from "../store/chatStore";
-import { ChatMessage } from "../types/chat.types";
+import { ChatMessage } from "../../../shared/features-types/chat.types";
 
 export function useWebSocket() {
   const clientRef = useRef<Client | null>(null);

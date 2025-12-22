@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AuthState } from '../types/auth.types';
+import { AuthState } from '../../../shared/features-types/auth.types';
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,

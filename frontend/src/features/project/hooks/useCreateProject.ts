@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { projectApi } from '@/shared/api/projectApi';
-import type { CreateProjectRequest } from '../types/project.types';
+import type { CreateProjectRequest } from '../../../shared/features-types/project.types';
 
 export const useCreateProject = () => {
   const queryClient = useQueryClient();

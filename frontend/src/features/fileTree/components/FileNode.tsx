@@ -1,6 +1,6 @@
 // // TODO: 박유경 - 파일 노드 컴포넌트 구현
 import { useState } from "react";
-import type { FileNode as FileNodeType } from "../types/file.types";
+import type { FileNode as FileNodeType } from "../../../shared/features-types/file.types";
 import { useEditorStore } from "../../editor/store/editorStore";
 import { useFileTreeStore } from "../store/fileTreeStore";
 import {

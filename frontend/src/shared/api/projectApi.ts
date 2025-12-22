@@ -10,7 +10,7 @@ import type {
   JoinProjectRequest,
   JoinProjectResponse,
   CreateInviteCodeResponse
-} from '@/features/project/types/project.types';
+} from '@/shared/features-types/project.types';
 
 export const projectApi = {
   getProjects: async (): Promise<GetProjectsResponse> => {

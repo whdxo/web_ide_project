@@ -8,7 +8,7 @@ import type {
   PasswordChangeResponse,
   JoinRequest,
   JoinResponse
-} from '@/features/auth/types/auth.types';
+} from '@/shared/features-types/auth.types';
 
 export const authApi = {
   login: async (data: LoginRequest): Promise<LoginResponse> => {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Project } from '../types/project.types';
+import type { Project } from '../../../shared/features-types/project.types';
 
 interface ProjectState {
   selectedProject: Project | null;
