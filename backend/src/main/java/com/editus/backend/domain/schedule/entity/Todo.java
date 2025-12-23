@@ -25,18 +25,20 @@ public class Todo {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = true)  // nullable: 개인 todo도 가능
+    @JoinColumn(name = "project_id", nullable = true) // nullable: 개인 todo도 가능
     private Project project;
 
     @Column(nullable = false, length = 500)
     private String content;
 
+    @Builder.Default
     @Column(nullable = false)
     private Boolean completed = false;
 
     @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Builder.Default
     @Column(nullable = false)
     private Integer priority = 1; // 0: 낮음, 1: 보통, 2: 높음
 
