@@ -18,9 +18,19 @@ services:
     networks:
       - editus-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
+  redis:
+    image: redis:latest
+    container_name: editus-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - editus-network
+    volumes:
+      - redis-data:/data
 
   backend:
     build:
@@ -69,6 +79,8 @@ volumes:
   mysql-data:
     driver: local
   jenkins_home:
+    driver: local
+  redis-data:
     driver: local
 
 networks:
