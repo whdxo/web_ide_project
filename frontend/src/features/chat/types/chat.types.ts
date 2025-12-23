@@ -1,15 +1,22 @@
+export interface ChatSender {
+  id: number;
+  nickname: string;
+}
+
 export interface ChatMessage {
   projectId: number;
-  sender: {
-    id: number;
-    nickname: string;
-  };
+  sender: ChatSender;
   message: string;
   sentAt: string;
 }
 
-export interface SendMessageRequest {
+export interface SendChatMessage {
   projectId: number;
   senderId: number;
   message: string;
+}
+
+export interface ChatUser {
+  id: number;
+  nickname: string;
 }

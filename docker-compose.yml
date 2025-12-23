@@ -21,15 +21,16 @@ services:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
       timeout: 20s
       retries: 10
-
   redis:
-    image: redis:alpine
+    image: redis:latest
     container_name: editus-redis
-    restart: unless-stopped
+    restart: always
     ports:
       - "6379:6379"
     networks:
       - editus-network
+    volumes:
+      - redis-data:/data
 
   backend:
     build:
@@ -61,29 +62,10 @@ services:
       - ./backend/logs:/app/logs
       # - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
 
-  jenkins:
-    build:
-      context: ./jenkins-docker
-      dockerfile: Dockerfile
-    container_name: jenkins-server
-    restart: unless-stopped
-    user: root
-    ports:
-      - "8081:8080"
-      - "50000:50000"
-    networks:
-      - editus-network
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-      - .:/workspace
-    environment:
-      - JENKINS_OPTS=--httpPort=8080
-
 volumes:
   mysql-data:
     driver: local
-  jenkins_home:
+  redis-data:
     driver: local
 
 networks:

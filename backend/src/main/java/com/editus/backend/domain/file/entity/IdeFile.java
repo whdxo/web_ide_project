@@ -6,16 +6,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "ide_file",
-        indexes = {
-                @Index(name = "idx_ide_file_project", columnList = "project_id"),
-                @Index(name = "idx_ide_file_folder", columnList = "folder_id")
-        }
-)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Builder
 public class IdeFile {
 
@@ -23,50 +16,34 @@ public class IdeFile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "project_id", nullable = false)
+    @Column(nullable = false)
     private Long projectId;
 
-    @Column(name = "folder_id", nullable = false)
+    @Column(nullable = false)
     private Long folderId;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String name;
 
-    @Column(length = 50)
+    @Column(nullable = false)
     private String language;
 
     @Lob
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Column(nullable = false)
     private String content;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     @PrePersist
-    private void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
-        if (this.content == null) this.content = "";
-    }
-
-    @PreUpdate
-    private void onUpdate() {
+    void onCreate() {
+        this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
-    // 생성 편의 메서드(선택)
-    public static IdeFile of(Long projectId, Long folderId, String name, String language) {
-        return IdeFile.builder()
-                .projectId(projectId)
-                .folderId(folderId)
-                .name(name)
-                .language(language)
-                .content("")
-                .build();
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateContent(String content) {
