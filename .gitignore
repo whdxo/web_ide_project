@@ -46,6 +46,7 @@ backend/.gradle/
 backend/out/
 backend/bin/
 backend/logs/
+backend/docs/
 
 ### Frontend ###
 frontend/node_modules/

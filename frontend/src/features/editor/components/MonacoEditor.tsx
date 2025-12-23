@@ -30,8 +30,10 @@
 //   );
 // }
 
+import { useEffect } from "react";
 import { useEditorStore } from "../store/editorStore";
 import Editor from "@monaco-editor/react";
+import { fileApi } from "@/shared/api/fileApi";
 
 export function MonacoEditor() {
   const { openFiles, activeFileId, updateContent } = useEditorStore();
@@ -39,6 +41,19 @@ export function MonacoEditor() {
   const activeFile = openFiles.find(
     (file) => file.id === activeFileId
   );
+
+  useEffect(() => {
+    if (activeFile && activeFile.content === "// Loading...") {
+      fileApi.getFileContent(activeFile.id)
+        .then((res) => {
+          updateContent(activeFile.id, res.data.content ?? "");
+        })
+        .catch((err) => {
+          console.error("Failed to load file content", err);
+          updateContent(activeFile.id, "// Failed to load content");
+        });
+    }
+  }, [activeFile?.id, activeFile?.content, updateContent]);
 
   if (!activeFile) {
     return (

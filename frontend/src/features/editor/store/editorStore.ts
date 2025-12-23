@@ -1,9 +1,9 @@
 import { create } from "zustand";
 
 export interface EditorFile {
-  id: string;
+  id: number;
   name: string;
-  path: string;
+  path?: string;
   language: string;
   content: string;
   updatedAt: string;
@@ -11,13 +11,13 @@ export interface EditorFile {
 
 interface EditorState {
   openFiles: EditorFile[];
-  activeFileId: string | null;
+  activeFileId: number | null;
 
   openFile: (file: EditorFile) => void;
-  closeFile: (fileId: string) => void;
-  setActiveFile: (fileId: string) => void;
+  closeFile: (fileId: number) => void;
+  setActiveFile: (fileId: number) => void;
 
-  updateContent: (fileId: string, content: string) => void;
+  updateContent: (fileId: number, content: string) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -43,12 +43,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   closeFile: (fileId) => {
     const { openFiles, activeFileId } = get();
     const newFiles = openFiles.filter((f) => f.id !== fileId);
+    const lastFile = newFiles.length > 0 ? newFiles[newFiles.length - 1] : null;
 
     set({
       openFiles: newFiles,
       activeFileId:
         activeFileId === fileId
-          ? newFiles.at(-1)?.id ?? null
+          ? lastFile?.id ?? null
           : activeFileId,
     });
   },

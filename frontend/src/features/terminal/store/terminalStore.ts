@@ -48,8 +48,8 @@ export const useTerminalStore = create<TerminalState>((set) => ({
           ? []
           : [
               ...state.lines,
-              { id: crypto.randomUUID(), type: "input", text: command },
-              { id: crypto.randomUUID(), type: "output", text: output },
+              { id: crypto.randomUUID(), type: "input" as const, text: command },
+              { id: crypto.randomUUID(), type: "output" as const, text: output },
             ];
 
       return { lines: newLines };

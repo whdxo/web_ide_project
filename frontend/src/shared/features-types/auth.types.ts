@@ -13,12 +13,14 @@ export interface LoginRequest {
 }
 
 export interface LoginResponseData {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   user: User;
 }
 
 export interface RefreshResponseData {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
   expiresIn: number;
 }
 
@@ -37,9 +39,15 @@ export interface UpdateUserRequest {
   name: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
 export type LoginResponse = ApiResponse<LoginResponseData>;
 export type RefreshResponse = ApiResponse<RefreshResponseData>;
 export type LogoutResponse = ApiResponse<null>;
 export type PasswordChangeResponse = ApiResponse<null>;
 export type JoinResponse = ApiResponse<User>;
 export type UserResponse = ApiResponse<User>;
+export type UpdateUserResponse = ApiResponse<User>;
+export type DeleteUserResponse = ApiResponse<null>;

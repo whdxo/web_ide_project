@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { editorApi } from '../api/editorApi';
+import { fileApi } from '@/shared/api/fileApi';
 
-export const useFileContent = (fileId: string) => {
+export const useFileContent = (fileId: number) => {
   return useQuery({
     queryKey: ['file', fileId],
-    queryFn: () => editorApi.getFileContent(fileId),
+    queryFn: () => fileApi.getFileContent(fileId),
     enabled: !!fileId,
   });
 };

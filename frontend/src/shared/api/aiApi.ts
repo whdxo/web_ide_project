@@ -1,5 +1,5 @@
-import { apiClient } from '@/shared/utils/api';
-import type { AIReviewRequest, AIReviewResponse } from '../types/ai.types';
+import { apiClient } from './client';
+import type { AIReviewRequest, AIReviewResponse } from '@/shared/features-types/ai.types';
 
 export const aiApi = {
   reviewCode: async (data: AIReviewRequest): Promise<AIReviewResponse> => {
