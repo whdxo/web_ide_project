@@ -30,6 +30,12 @@ jwt:
 cors:
   allowed-origins: http://localhost:5173,http://localhost:3000
 
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-4o-mini
+
 logging:
   level:
     com.editus.backend: DEBUG
