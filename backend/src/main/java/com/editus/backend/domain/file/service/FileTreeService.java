@@ -39,7 +39,7 @@ public class FileTreeService {
         if (!Objects.equals(folder.getProjectId(), projectId)) {
             throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
         }
-        
+
         String language = LanguageDetector.detect(req.getName());
 
         IdeFile file = IdeFile.builder()
