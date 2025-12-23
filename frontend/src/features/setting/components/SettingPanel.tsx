@@ -25,9 +25,8 @@ export function SettingsPanel() {
 
         {/* 🔹 메뉴 영역 (거리 확보 핵심) */}
         <div className="mt-14 flex flex-col gap-4 text-xs text-gray-300">
-          <button className="hover:text-white">받은 초대장</button>
+          <button className="hover:text-white">프로젝트 나가기</button>
           <button className="hover:text-white">프로젝트 초대하기</button>
-          <button className="hover:text-white">체크리스트</button>
           <button className="hover:text-white">일정</button>
         </div>
       </div>

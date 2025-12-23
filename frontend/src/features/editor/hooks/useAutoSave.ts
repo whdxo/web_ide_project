@@ -1,21 +1,30 @@
 import { useEffect, useRef } from 'react';
-import { useEditor } from './useEditor';
+import { useEditorStore } from '../store/editorStore';
+import { useSaveFile } from './useFileContent';
 
 export const useAutoSave = (interval: number = 30000) => {
-  const { content } = useEditor();
-
-  const contentRef = useRef(content);
+  const { openFiles, activeFileId } = useEditorStore();
+  const saveFile = useSaveFile();
+  
+  const filesRef = useRef(openFiles);
 
   useEffect(() => {
-    contentRef.current = content;
-  }, [content]);
+    filesRef.current = openFiles;
+  }, [openFiles]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      console.log('Auto saving...', contentRef.current);
-      // Call API to save
+      const activeFile = filesRef.current.find((f) => f.id === activeFileId);
+      
+      if (activeFile) {
+        console.log('Auto saving...', activeFile.name);
+        saveFile.mutate({
+          fileId: Number(activeFile.id),
+          content: activeFile.content,
+        });
+      }
     }, interval);
 
     return () => clearInterval(timer);
-  }, [interval]);
+  }, [interval, activeFileId, saveFile]);
 };

@@ -16,8 +16,8 @@ interface EditorState {
   openFile: (file: EditorFile) => void;
   closeFile: (fileId: string) => void;
   setActiveFile: (fileId: string) => void;
-
   updateContent: (fileId: string, content: string) => void;
+  updateFileContent: (fileId: string, content: string) => void; // API로 로드한 내용 반영
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -47,22 +47,26 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({
       openFiles: newFiles,
       activeFileId:
-        activeFileId === fileId
-          ? newFiles.at(-1)?.id ?? null
-          : activeFileId,
+        activeFileId === fileId ? newFiles.at(-1)?.id ?? null : activeFileId,
     });
   },
 
   /** 탭 클릭 */
   setActiveFile: (fileId) => set({ activeFileId: fileId }),
 
-  /** 🔥 에디터 내용 변경 */
+  /** 에디터 내용 변경 (사용자 입력) */
   updateContent: (fileId, content) =>
     set((state) => ({
       openFiles: state.openFiles.map((file) =>
-        file.id === fileId
-          ? { ...file, content }
-          : file
+        file.id === fileId ? { ...file, content } : file
+      ),
+    })),
+
+  /** API로 로드한 파일 내용 반영 */
+  updateFileContent: (fileId, content) =>
+    set((state) => ({
+      openFiles: state.openFiles.map((file) =>
+        file.id === fileId ? { ...file, content } : file
       ),
     })),
 }));

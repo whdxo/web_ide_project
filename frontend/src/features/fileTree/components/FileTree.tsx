@@ -1,53 +1,41 @@
-import { useEffect } from "react";
-import { useFileTreeStore } from "../store/fileTreeStore";
+import { useFileTree } from "../hooks/useFileTree";
 import { FileNode } from "./FileNode";
-import type { FileNode as FileNodeType } from "../../../shared/features-types/file.types";
-
-const MOCK_TREE: FileNodeType[] = [
-  {
-    id: "1",
-    name: "src",
-    type: "folder",
-    path: "src",
-    children: [
-      {
-        id: "2",
-        name: "main.tsx",
-        type: "file",
-        path: "src/main.tsx",
-      },
-      {
-        id: "3",
-        name: "components",
-        type: "folder",
-        path: "src/components",
-        children: [
-          {
-            id: "4",
-            name: "Editor.tsx",
-            type: "file",
-            path: "src/components/Editor.tsx",
-          },
-        ],
-      },
-    ],
-  },
-];
 
 export function FileTree() {
-  const tree = useFileTreeStore((s) => s.tree);
-  const setTree = useFileTreeStore((s) => s.setTree);
+  // TODO: 실제 프로젝트 ID는 프로젝트 선택 후 context/store에서 가져와야 함
+  // 임시로 1번 프로젝트 사용
+  const projectId = 1;
+  
+  const { data, isLoading, error } = useFileTree(projectId);
 
-  useEffect(() => {
-    if (tree.length === 0) {
-      setTree(MOCK_TREE);
-    }
-  }, [tree.length, setTree]);
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500 text-xs">
+        로딩 중...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="h-full flex items-center justify-center text-red-500 text-xs">
+        파일 트리를 불러올 수 없습니다
+      </div>
+    );
+  }
+
+  if (!data || !data.rootFolders || data.rootFolders.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center text-gray-500 text-xs">
+        파일이 없습니다
+      </div>
+    );
+  }
 
   return (
     <div className="h-full select-none">
-      {tree.map((node) => (
-        <FileNode key={node.id} node={node} />
+      {data.rootFolders.map((node) => (
+        <FileNode key={node.id} node={node} projectId={projectId} />
       ))}
     </div>
   );
