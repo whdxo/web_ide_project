@@ -12,7 +12,7 @@ import type {
   CreateTaskResponse, 
   UpdateTaskStatusRequest, 
   UpdateTaskAssigneeRequest 
-} from '@/features/schedule/types/schedule.types';
+} from '@/shared/features-types/schedule.types';
 
 export const scheduleApi = {
   // Sprints

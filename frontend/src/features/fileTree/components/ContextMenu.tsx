@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const ContextMenu = () => {
   return (
     <div className="absolute bg-white border shadow-md rounded p-2">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CreateTodoRequest } from "../types/schedule.types";
+import type { CreateTodoRequest } from "@/shared/features-types/schedule.types";
 
 interface Todo extends CreateTodoRequest {
   id: number;

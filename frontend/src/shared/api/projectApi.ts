@@ -10,7 +10,7 @@ import type {
   JoinProjectRequest,
   JoinProjectResponse,
   CreateInviteCodeResponse
-} from '@/features/project/types/project.types';
+} from '@/shared/features-types/project.types';
 
 export const projectApi = {
   getProjects: async (): Promise<GetProjectsResponse> => {
@@ -39,6 +39,10 @@ export const projectApi = {
   },
   removeMember: async (projectId: number, memberId: number): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}/members/${memberId}`);
+    return response.data;
+  },
+  deleteProject: async (projectId: number): Promise<ApiResponse<null>> => {
+    const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}`);
     return response.data;
   }
 };

@@ -1,8 +1,7 @@
-// // TODO: 박유경 - 파일 노드 컴포넌트 구현
 import { useState } from "react";
-import type { FileNode as FileNodeType } from "../types/file.types";
+import type { FileNode as FileNodeType } from "@/shared/features-types/file.types";
 import { useEditorStore } from "../../editor/store/editorStore";
-import { useFileTreeStore } from "../store/fileTreeStore";
+import { useFileOperations } from "../hooks/useFileOperations";
 import {
   VscNewFile,
   VscNewFolder,
@@ -12,9 +11,11 @@ import {
 export function FileNode({
   node,
   depth = 0,
+  projectId,
 }: {
   node: FileNodeType;
   depth?: number;
+  projectId: number;
 }) {
   const [open, setOpen] = useState(true);
 
@@ -22,19 +23,16 @@ export function FileNode({
   const [isCreating, setIsCreating] = useState<null | "file" | "folder">(null);
   const [tempName, setTempName] = useState("");
 
-  const setActiveFile = useEditorStore((s) => s.setActiveFile);
-  const { addNode, deleteNode } = useFileTreeStore();
-
+  const { createFile, createFolder, deleteFile } = useFileOperations(projectId);
   const openFile = useEditorStore((s) => s.openFile);
 
   const handleClick = () => {
-    if (node.type === "file") {
+    if (node.type === "FILE") {
       openFile({
         id: node.id,
         name: node.name,
-        path: node.path,
-        language: "typescript",
-        content: "// TODO: 파일 내용 로드",
+        language: "typescript", // TODO: detect language from extension
+        content: "// Loading...", // Content will be loaded by editor
         updatedAt: new Date().toISOString(),
       });
     } else {
@@ -42,6 +40,23 @@ export function FileNode({
     }
   };
 
+  const handleCreate = () => {
+    if (!tempName.trim()) return;
+
+    if (isCreating === "file") {
+      createFile.mutate({
+        name: tempName.trim(),
+        parent_folder_id: node.id,
+        content: "",
+      });
+    } else if (isCreating === "folder") {
+      createFolder.mutate({
+        name: tempName.trim(),
+        parent_folder_id: node.id,
+      });
+    }
+    setIsCreating(null);
+  };
 
   return (
     <>
@@ -52,13 +67,13 @@ export function FileNode({
         onClick={handleClick}
       >
         <div className="flex items-center gap-1">
-          {node.type === "folder" ? (open ? "📂" : "📁") : "📄"}
+          {node.type === "FOLDER" ? (open ? "📂" : "📁") : "📄"}
           <span>{node.name}</span>
         </div>
 
         {/* hover 액션 */}
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100">
-          {node.type === "folder" && (
+          {node.type === "FOLDER" && (
             <>
               {/* 파일 추가 */}
               <button
@@ -94,7 +109,9 @@ export function FileNode({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              deleteNode(node.id);
+              if (confirm("정말 삭제하시겠습니까?")) {
+                deleteFile.mutate(node.id);
+              }
             }}
             className="p-1 hover:bg-red-600 rounded"
             title="삭제"
@@ -117,23 +134,15 @@ export function FileNode({
             value={tempName}
             onChange={(e) => setTempName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && tempName.trim()) {
-                addNode(node.id, {
-                  id: crypto.randomUUID(),
-                  name: tempName.trim(),
-                  type: isCreating,
-                  path: "",
-                  ...(isCreating === "folder" ? { children: [] } : {}),
-                });
-                setIsCreating(null);
+              if (e.key === "Enter") {
+                handleCreate();
               }
-
               if (e.key === "Escape") {
                 setIsCreating(null);
               }
             }}
             onBlur={() => setIsCreating(null)}
-            className="w-full rounded bg-gray-800 px-1 outline-none"
+            className="w-full rounded bg-gray-800 px-1 outline-none text-white"
             placeholder={
               isCreating === "folder" ? "폴더 이름" : "파일 이름"
             }
@@ -148,6 +157,7 @@ export function FileNode({
             key={child.id}
             node={child}
             depth={depth + 1}
+            projectId={projectId}
           />
         ))}
     </>

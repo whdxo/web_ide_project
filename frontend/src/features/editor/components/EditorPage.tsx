@@ -1,7 +1,7 @@
 // editor 전체 페이지
 import { FileTree } from "../../fileTree/components/FileTree";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { EditorTabs } from "./EditorTabs";
 import { IoChatbubbleEllipsesOutline, IoCalendarOutline, IoSettingsOutline } from "react-icons/io5";
@@ -13,14 +13,31 @@ import { AIReviewPanel } from "@/features/ai/components/AIReviewPanel";
 import { Terminal } from "@/features/terminal/components/Terminal";
 import { SprintView } from "@/features/schedule/components/SprintView";
 import { SettingsPanel } from "@/features/setting/components/SettingPanel";
-
+import { useEditorStore } from "../store/editorStore";
+import { fileApi } from "@/shared/api/fileApi";
 
 export function EditorPage() {
   const location = useLocation();
+  const { projectId } = useParams<{ projectId: string }>();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+  const { activeFileId, openFiles } = useEditorStore();
 
   type RightPanelType = "chat" | "todo" | "ai" | "settings" | null;
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null);
+
+  const handleSave = async () => {
+    if (!activeFileId) return;
+    const activeFile = openFiles.find(f => f.id === activeFileId);
+    if (!activeFile) return;
+
+    try {
+      await fileApi.saveFileContent(activeFile.id, { content: activeFile.content });
+      alert("저장되었습니다.");
+    } catch (error) {
+      console.error("저장 실패:", error);
+      alert("저장 중 오류가 발생했습니다.");
+    }
+  };
 
   useEffect(() => {
     if (location.state?.openPanel) {
@@ -107,9 +124,7 @@ export function EditorPage() {
 
           {/* 저장 버튼 */}
           <button
-            onClick={() => {
-              console.log("저장 클릭");
-            }}
+            onClick={handleSave}
             className="p-2 rounded hover:bg-gray-700 text-gray-400"
             title="저장"
           >
@@ -120,9 +135,9 @@ export function EditorPage() {
 
 
         {/* 좌측 파일트리 */}
-        {isFileTreeOpen && (
+        {isFileTreeOpen && projectId && (
           <aside className="w-64 bg-[#181818] border-r border-gray-800 overflow-y-auto">
-            <FileTree />
+            <FileTree projectId={Number(projectId)} />
           </aside>
         )}
 
