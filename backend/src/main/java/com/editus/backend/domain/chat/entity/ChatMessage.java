@@ -34,6 +34,7 @@ public class ChatMessage {
     private LocalDateTime sentAt;
 
     // 읽음 여부 (기본값: false)
+    @Builder.Default
     @Column(nullable = false)
     private boolean isRead = false;
 

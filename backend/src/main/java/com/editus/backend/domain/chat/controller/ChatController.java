@@ -18,7 +18,7 @@ public class ChatController {
 
     private final RedisPublisher redisPublisher;
     private final ChannelTopic topic;
-    private final ChatService chatService; // 새로 추가!
+    private final ChatService chatService;
 
     /**
      * WebSocket으로 메시지 전송
@@ -46,6 +46,7 @@ public class ChatController {
         return ResponseEntity.ok(chatService.getMessages(roomId));
     }
 
+    // 특정 메시지 읽음 처리
     @PostMapping("/api/chat/message/{messageId}/read")
     @ResponseBody
     public ResponseEntity<Void> markAsRead(@PathVariable Long messageId) {
@@ -54,7 +55,7 @@ public class ChatController {
     }
 
     /**
-     * 채팅방의 모든 메시지 읽음 처리 (REST API)
+     * 채팅방의 모든 메시지 읽음 처리
      */
     @PostMapping("/api/chat/room/{roomId}/read")
     @ResponseBody

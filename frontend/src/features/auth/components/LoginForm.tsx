@@ -1,10 +1,18 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { KakaoLoginButton } from './KakaoLoginButton';
 
 export const LoginForm = () => {
+  const navigate = useNavigate();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // TODO: Implement actual login logic
+    navigate('/projects');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-black">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-[2rem] shadow-lg">
@@ -13,7 +21,7 @@ export const LoginForm = () => {
           <p className="mt-2 text-gray-500 text-sm">웹 기반 통합 개발 환경에 오신 것을 환영합니다</p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <Input 
               label="이메일"

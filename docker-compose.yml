@@ -56,29 +56,8 @@ services:
     volumes:
       - ./backend/logs:/app/logs
 
-  jenkins:
-    build:
-      context: ./jenkins-docker
-      dockerfile: Dockerfile
-    container_name: jenkins-server
-    restart: unless-stopped
-    user: root
-    ports:
-      - "8081:8080"
-      - "50000:50000"
-    networks:
-      - editus-network
-    volumes:
-      - jenkins_home:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-      - .:/workspace
-    environment:
-      - JENKINS_OPTS=--httpPort=8080
-
 volumes:
   mysql-data:
-    driver: local
-  jenkins_home:
     driver: local
   redis-data:
     driver: local
