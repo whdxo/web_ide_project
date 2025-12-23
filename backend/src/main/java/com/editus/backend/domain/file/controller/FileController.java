@@ -6,6 +6,7 @@ import com.editus.backend.domain.file.service.FileTreeService;
 import com.editus.backend.domain.file.dto.CreateFolderRequest;
 import com.editus.backend.domain.file.dto.FolderResponse;
 import com.editus.backend.domain.file.dto.UpdateFileContentRequest;
+import com.editus.backend.domain.file.dto.TreeResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +42,7 @@ public class FileController {
     }
 
     @GetMapping("/projects/{projectId}/tree")
-    public FileTreeService.TreeNode getTree(@PathVariable Long projectId) {
+    public TreeResponse getTree(@PathVariable Long projectId) {
         return fileTreeService.getTree(projectId);
     }
 

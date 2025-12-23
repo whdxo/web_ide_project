@@ -10,6 +10,9 @@ import com.editus.backend.domain.file.repository.IdeFileRepository;
 import com.editus.backend.domain.file.dto.CreateFolderRequest;
 import com.editus.backend.domain.file.dto.FolderResponse;
 import com.editus.backend.domain.file.entity.Folder;
+import com.editus.backend.domain.file.dto.TreeNodeResponse;
+import com.editus.backend.domain.file.dto.TreeResponse;
+import com.editus.backend.domain.file.util.LanguageDetector;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,6 +39,8 @@ public class FileTreeService {
         if (!Objects.equals(folder.getProjectId(), projectId)) {
             throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
         }
+        
+        String language = LanguageDetector.detect(req.getName());
 
         IdeFile file = IdeFile.builder()
                 .projectId(projectId)
@@ -131,48 +136,68 @@ public class FileTreeService {
     프로젝트 트리 조회
       - Folder + File 전체를 가져와 트리 JSON으로 조립
       */
-    @Transactional(readOnly = true)
-    public TreeNode getTree(Long projectId) {
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public TreeResponse getTree(Long projectId) {
 
         List<Folder> folders = folderRepository.findByProjectId(projectId);
         List<IdeFile> files = ideFileRepository.findByProjectId(projectId);
 
-        Map<Long, TreeNode> folderNodeMap = new HashMap<>();
+        // folderId -> folderNode
+        Map<Long, TreeNodeResponse> folderNodeMap = new HashMap<>();
         for (Folder f : folders) {
-            folderNodeMap.put(f.getId(),
-                    TreeNode.folder(f.getId(), f.getName(), f.getParentId()));
+            TreeNodeResponse node = TreeNodeResponse.builder()
+                    .type("FOLDER")
+                    .id(f.getId())
+                    .parentId(f.getParentId())
+                    .name(f.getName())
+                    .build();
+            folderNodeMap.put(f.getId(), node);
         }
 
-        TreeNode root = TreeNode.root(projectId);
+        // root children 목록
+        List<TreeNodeResponse> roots = new ArrayList<>();
 
-        // 폴더 연결
+        // 폴더 부모-자식 연결
         for (Folder f : folders) {
-            TreeNode node = folderNodeMap.get(f.getId());
+            TreeNodeResponse node = folderNodeMap.get(f.getId());
+
             if (f.getParentId() == null) {
-                root.children.add(node);
+                roots.add(node);
             } else {
-                TreeNode parent = folderNodeMap.get(f.getParentId());
-                if (parent != null) parent.children.add(node);
-                else root.children.add(node); // 안전장치
+                TreeNodeResponse parent = folderNodeMap.get(f.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(node);
+                } else {
+                    roots.add(node); // 안전장치: 부모가 없으면 루트로
+                }
             }
         }
 
-        // 파일 연결
+        // 파일을 폴더에 연결
         for (IdeFile file : files) {
-            TreeNode fileNode = TreeNode.file(
-                    file.getId(),
-                    file.getName(),
-                    file.getFolderId(),
-                    file.getLanguage()
-            );
+            TreeNodeResponse fileNode = TreeNodeResponse.builder()
+                    .type("FILE")
+                    .id(file.getId())
+                    .parentId(file.getFolderId())
+                    .name(file.getName())
+                    .language(file.getLanguage())
+                    .build();
 
-            TreeNode parentFolder = folderNodeMap.get(file.getFolderId());
-            if (parentFolder != null) parentFolder.children.add(fileNode);
-            else root.children.add(fileNode); // 안전장치
+            TreeNodeResponse parentFolder = folderNodeMap.get(file.getFolderId());
+            if (parentFolder != null) {
+                parentFolder.getChildren().add(fileNode);
+            } else {
+                roots.add(fileNode); // 안전장치
+            }
         }
 
-        sortTree(root);
-        return root;
+        // 정렬(폴더 먼저, 이름순)
+        sortNodes(roots);
+
+        return TreeResponse.builder()
+                .projectId(projectId)
+                .nodes(roots)
+                .build();
     }
 
     private void sortTree(TreeNode node) {
@@ -181,6 +206,19 @@ public class FileTreeService {
             return a.type.equals("FOLDER") ? -1 : 1;
         });
         for (TreeNode child : node.children) sortTree(child);
+    }
+
+    private void sortNodes(List<TreeNodeResponse> nodes) {
+        nodes.sort((a, b) -> {
+            if (a.getType().equals(b.getType())) {
+                return a.getName().compareToIgnoreCase(b.getName());
+            }
+            return a.getType().equals("FOLDER") ? -1 : 1;
+        });
+
+        for (TreeNodeResponse n : nodes) {
+            sortNodes(n.getChildren());
+        }
     }
 
     public static class TreeNode {
