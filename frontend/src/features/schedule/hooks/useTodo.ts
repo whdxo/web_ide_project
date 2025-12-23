@@ -1,53 +1,73 @@
-import { useState } from "react";
-import type { CreateTodoRequest } from "../../../shared/features-types/schedule.types";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { scheduleApi } from '@/shared/api/scheduleApi';
+import type { TodoResponse, TodoCreateRequest, TodoUpdateRequest } from '@/shared/api/scheduleApi';
 
-interface Todo extends CreateTodoRequest {
-  id: number;
-  completed: boolean;
-}
+// Todo 목록 조회
+export const useTodos = (params?: {
+  completed?: boolean;
+  dueDate?: string;
+  projectId?: number;
+}) => {
+  return useQuery({
+    queryKey: ['todos', params],
+    queryFn: () => scheduleApi.getTodos(params),
+    staleTime: 30000,
+  });
+};
 
-let idCounter = 1;
+// Todo 생성
+export const useCreateTodo = () => {
+  const queryClient = useQueryClient();
 
-export function useTodo() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-
-  const createTodo = {
-    mutate: (data: CreateTodoRequest, options?: any) => {
-      const newTodo: Todo = {
-        id: idCounter++,
-        completed: false,
-        ...data,
-      };
-
-      setTodos((prev) => [...prev, newTodo]);
-      options?.onSuccess?.();
+  return useMutation({
+    mutationFn: (data: TodoCreateRequest) => scheduleApi.createTodo(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
-  };
+  });
+};
 
-  const deleteTodo = {
-    mutate: (id: number) => {
-      setTodos((prev) => prev.filter((t) => t.id !== id));
-    },
-  };
+// Todo 수정
+export const useUpdateTodo = () => {
+  const queryClient = useQueryClient();
 
-  const toggleTodo = {
-    mutate: (id: number) => {
-      setTodos((prev) =>
-        prev.map((t) =>
-          t.id === id ? { ...t, completed: !t.completed } : t
-        )
-      );
+  return useMutation({
+    mutationFn: ({
+      todoId,
+      data,
+    }: {
+      todoId: number;
+      data: TodoUpdateRequest;
+    }) => scheduleApi.updateTodo(todoId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
-  };
+  });
+};
 
-  return {
-    todosQuery: {
-      data: {
-        data: todos,
-      },
+// Todo 완료 토글
+export const useToggleTodo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (todoId: number) => scheduleApi.toggleTodo(todoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
     },
-    createTodo,
-    deleteTodo,
-    toggleTodo,
-  };
-}
+  });
+};
+
+// Todo 삭제
+export const useDeleteTodo = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (todoId: number) => scheduleApi.deleteTodo(todoId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['todos'] });
+    },
+  });
+};
+
+// 타입 export
+export type { TodoResponse };

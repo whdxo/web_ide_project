@@ -22,6 +22,7 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
+//import { useAuthStore } from "@/features/auth/store/authStore";
 
 export function EditorPage() {
   const location = useLocation();
@@ -35,8 +36,10 @@ export function EditorPage() {
   const { addOutput, addError } = useTerminalStore();
 
   // TODO: 실제 프로젝트 ID와 현재 사용자 ID를 context/store에서 가져와야 함
+  // 임시 하드 코딩
   const projectId = 1;
   const currentUserId = 1;
+  //const currentUserId = useAuthStore((s) => s.user?.userId);
 
   useEffect(() => {
     if (location.state?.openPanel) {
