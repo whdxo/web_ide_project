@@ -40,6 +40,10 @@ export const projectApi = {
   removeMember: async (projectId: number, memberId: number): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}/members/${memberId}`);
     return response.data;
+  },
+  deleteProject: async (projectId: number): Promise<ApiResponse<null>> => {
+    const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}`);
+    return response.data;
   }
 };
 

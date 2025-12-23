@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { authApi } from '@/shared/api/authApi';
-import { JoinRequest } from '../../../shared/features-types/auth.types';
+import { JoinRequest } from '@/shared/features-types/auth.types';
 import { useNavigate } from 'react-router-dom';
 
 export const useSignup = () => {

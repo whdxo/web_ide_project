@@ -1,7 +1,6 @@
-// editor page
 import { FileTree } from "../../fileTree/components/FileTree";
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { EditorTabs } from "./EditorTabs";
 import {
@@ -22,10 +21,10 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
-//import { useAuthStore } from "@/features/auth/store/authStore";
 
 export function EditorPage() {
   const location = useLocation();
+  const { projectId: projectIdParam } = useParams<{ projectId: string }>();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
 
   type RightPanelType = "chat" | "todo" | "ai" | "settings" | "members" | null;
@@ -35,11 +34,10 @@ export function EditorPage() {
   const saveFile = useSaveFile();
   const { addOutput, addError } = useTerminalStore();
 
-  // TODO: 실제 프로젝트 ID와 현재 사용자 ID를 context/store에서 가져와야 함
-  // 임시 하드 코딩
-  const projectId = 1;
+  // URL에서 가져온 projectId 또는 임시 값
+  const projectId = projectIdParam ? Number(projectIdParam) : 1;
+  // TODO: 실제 로그인 유저 ID
   const currentUserId = 1;
-  //const currentUserId = useAuthStore((s) => s.user?.userId);
 
   useEffect(() => {
     if (location.state?.openPanel) {
@@ -60,7 +58,7 @@ export function EditorPage() {
 
     saveFile.mutate(
       {
-        fileId: Number(activeFile.id),
+        fileId: activeFile.id,
         content: activeFile.content,
       },
       {
@@ -74,7 +72,6 @@ export function EditorPage() {
     );
   };
 
-  // 코드 실행 (임시 - 백엔드 API 연동 필요)
   const handleRun = () => {
     const activeFile = openFiles.find((f) => f.id === activeFileId);
     if (!activeFile) {
@@ -83,14 +80,8 @@ export function EditorPage() {
     }
 
     addOutput(`> Running ${activeFile.name}...`);
-    
-    // TODO: 실제 API 호출로 대체
-    // const result = await executeCode({
-    //   code: activeFile.content,
-    //   language: activeFile.language
-    // });
-    
-    // 임시 Mock 결과
+
+    // TODO: 실제 API 호출
     setTimeout(() => {
       addOutput("3");
       addOutput("실행 완료");
@@ -102,8 +93,8 @@ export function EditorPage() {
       {/* header */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-[#181818] border-b border-gray-800 flex items-center px-4 z-50">
         <h1 className="text-xl font-semibold tracking-wide">EditUs</h1>
+
         <div className="ml-auto flex items-center gap-3">
-          {/* 멤버 목록 버튼 */}
           <button
             onClick={() => togglePanel("members")}
             className={`p-2 rounded-md ${
@@ -116,7 +107,6 @@ export function EditorPage() {
             <IoPeople size={20} />
           </button>
 
-          {/* 채팅 버튼 */}
           <button
             onClick={() => togglePanel("chat")}
             className={`p-2 rounded-md ${
@@ -128,7 +118,6 @@ export function EditorPage() {
             <IoChatbubbleEllipsesOutline size={20} />
           </button>
 
-          {/* 일정/투두 버튼 */}
           <button
             onClick={() => togglePanel("todo")}
             className={`p-2 rounded-md ${
@@ -140,7 +129,6 @@ export function EditorPage() {
             <IoCalendarOutline size={20} />
           </button>
 
-          {/* AI 리뷰 버튼 */}
           <button
             onClick={() => togglePanel("ai")}
             className={`p-2 rounded-md ${
@@ -152,7 +140,6 @@ export function EditorPage() {
             <RiRobot2Fill size={20} />
           </button>
 
-          {/* 설정 버튼 */}
           <button
             onClick={() => togglePanel("settings")}
             className={`p-2 rounded-md ${
@@ -185,13 +172,12 @@ export function EditorPage() {
             className={`p-2 rounded hover:bg-gray-700 ${
               saveFile.isPending ? "text-gray-600" : "text-gray-400"
             }`}
-            title={saveFile.isPending ? "저장 중..." : "저장 (Ctrl+S)"}
+            title={saveFile.isPending ? "저장 중..." : "저장"}
             disabled={saveFile.isPending || !activeFileId}
           >
             <VscSave size={20} />
           </button>
 
-          {/* 터미널 Run 버튼 */}
           <button
             onClick={handleRun}
             className="p-2 rounded hover:bg-gray-700 text-green-400 hover:text-green-300"
@@ -205,7 +191,7 @@ export function EditorPage() {
         {/* 좌측 파일트리 */}
         {isFileTreeOpen && (
           <aside className="w-64 bg-[#181818] border-r border-gray-800 overflow-y-auto">
-            <FileTree />
+            <FileTree projectId={projectId} />
           </aside>
         )}
 
@@ -233,10 +219,7 @@ export function EditorPage() {
               )}
               {rightPanel === "ai" && <AIReviewPanel />}
               {rightPanel === "members" && (
-                <MemberPanel
-                  projectId={projectId}
-                  currentUserId={currentUserId}
-                />
+                <MemberPanel projectId={projectId} currentUserId={currentUserId} />
               )}
               {rightPanel === "settings" && <SettingsPanel />}
             </div>

@@ -5,6 +5,7 @@ import type {
   AIReviewResponse 
 } from '@/shared/features-types/ai.types';
 
+
 export const aiApi = {
   // 코드 리뷰 요청
   reviewCode: async (data: AIReviewRequest): Promise<AIReviewResponse> => {

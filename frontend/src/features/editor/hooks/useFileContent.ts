@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { editorApi } from '@/shared/api/editorApi';
+import { fileApi } from '@/shared/api/fileApi';
 
 // 파일 내용 조회
 export const useFileContent = (fileId: number | null) => {
@@ -7,11 +7,11 @@ export const useFileContent = (fileId: number | null) => {
     queryKey: ['fileContent', fileId],
     queryFn: async () => {
       if (!fileId) throw new Error('File ID is required');
-      const response = await editorApi.loadFile(fileId);
-      return response.data;
+      const response = await fileApi.getFileContent(fileId);
+      return response;
     },
     enabled: !!fileId,
-    staleTime: 10000, // 10초간 캐시
+    staleTime: 10000,
   });
 };
 
@@ -21,9 +21,8 @@ export const useSaveFile = () => {
 
   return useMutation({
     mutationFn: ({ fileId, content }: { fileId: number; content: string }) =>
-      editorApi.saveFile(fileId, content),
+      fileApi.saveFileContent(fileId, { content }),
     onSuccess: (_, variables) => {
-      // 저장 후 해당 파일 캐시 갱신
       queryClient.invalidateQueries({
         queryKey: ['fileContent', variables.fileId],
       });

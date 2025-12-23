@@ -10,6 +10,6 @@ export const useFileTree = (projectId: number | null) => {
       return response.data;
     },
     enabled: !!projectId,
-    staleTime: 30000, // 30초간 캐시 유지
+    staleTime: 30000,
   });
 };

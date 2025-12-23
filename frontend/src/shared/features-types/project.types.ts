@@ -1,21 +1,19 @@
 import type { ApiResponse } from '@/shared/types/common.types';
 
 export interface Project {
-  id: number;
+  project_id: number;
   name: string;
   description?: string;
-  language: string;
-  type: 'PERSONAL' | 'TEAM';
-  ownerId: number;
-  createdAt: string;
-  updatedAt: string;
+  owner_id: number;
+  created_at: string;
+  project_type: 'PERSONAL' | 'TEAM';
 }
 
 export interface CreateProjectRequest {
   name: string;
   description?: string;
-  language: string;
-  type: 'PERSONAL' | 'TEAM';
+  owner_id: number;
+  project_type: 'PERSONAL' | 'TEAM';
 }
 
 export interface JoinProjectRequest {

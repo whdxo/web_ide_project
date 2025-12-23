@@ -1,3 +1,4 @@
+// TODO: 박유경 - Monaco Editor 컴포넌트 구현
 import { useEffect } from "react";
 import { useEditorStore } from "../store/editorStore";
 import { useFileContent } from "../hooks/useFileContent";

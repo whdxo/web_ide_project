@@ -1,11 +1,11 @@
 import { useFileTree } from "../hooks/useFileTree";
 import { FileNode } from "./FileNode";
 
-export function FileTree() {
-  // TODO: 실제 프로젝트 ID는 프로젝트 선택 후 context/store에서 가져와야 함
-  // 임시로 1번 프로젝트 사용
-  const projectId = 1;
-  
+interface FileTreeProps {
+  projectId: number;
+}
+
+export function FileTree({ projectId }: FileTreeProps) {
   const { data, isLoading, error } = useFileTree(projectId);
 
   if (isLoading) {

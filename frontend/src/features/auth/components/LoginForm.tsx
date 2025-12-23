@@ -1,16 +1,23 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { KakaoLoginButton } from './KakaoLoginButton';
+import { useLogin } from '../hooks/useLogin';
 
 export const LoginForm = () => {
-  const navigate = useNavigate();
+  const { mutate: login, isPending } = useLogin();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual login logic
-    navigate('/projects');
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    
+    login({ email, password });
   };
 
   return (
@@ -27,11 +34,17 @@ export const LoginForm = () => {
               label="이메일"
               type="email" 
               placeholder="name@example.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isPending}
             />
             <Input 
               label="비밀번호"
               type="password" 
               placeholder="비밀번호를 입력하세요" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isPending}
             />
           </div>
 
@@ -47,8 +60,8 @@ export const LoginForm = () => {
             </Link>
           </div>
 
-          <Button fullWidth type="submit">
-            로그인
+          <Button fullWidth type="submit" disabled={isPending}>
+            {isPending ? '로그인 중...' : '로그인'}
           </Button>
           
           <div className="relative my-6">

@@ -23,11 +23,10 @@ export function FileNode({
   const handleClick = () => {
     if (node.type === "FILE") {
       openFile({
-        id: String(node.id),
+        id: node.id,
         name: node.name,
-        path: "", // API 응답에서 path 제공 안됨
         language: "typescript",
-        content: "", // 파일 열 때 별도로 로드
+        content: "",
         updatedAt: new Date().toISOString(),
       });
     } else {
@@ -56,6 +55,8 @@ export function FileNode({
   };
 
   const handleDelete = () => {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
     if (node.type === "FILE") {
       deleteFile.mutate(node.id);
     } else {
@@ -138,7 +139,7 @@ export function FileNode({
               if (e.key === "Escape") setIsCreating(null);
             }}
             onBlur={() => setIsCreating(null)}
-            className="w-full rounded bg-gray-800 px-1 outline-none"
+            className="w-full rounded bg-gray-800 px-1 outline-none text-white"
             placeholder={isCreating === "folder" ? "폴더 이름" : "파일 이름"}
           />
         </div>

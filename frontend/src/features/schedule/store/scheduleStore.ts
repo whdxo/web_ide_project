@@ -9,7 +9,7 @@ interface ScheduleState {
   selectDate: (date: string) => void;
 }
 
-export const useScheduleStore = create<ScheduleState>((set, get) => ({
+export const useScheduleStore = create<ScheduleState>((set) => ({
   currentMonth: new Date(),
   selectedDate: new Date().toISOString().slice(0, 10),
 
