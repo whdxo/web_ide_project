@@ -105,6 +105,10 @@ public class FileTreeService {
                 throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
             }
         }
+        // 폴더명 중복 체크
+        if (folderRepository.existsByProjectIdAndParentIdAndName(projectId, parentId, req.getName())) {
+            throw new IllegalStateException("같은 위치에 동일한 폴더명이 이미 존재합니다.");
+        }
 
         Folder folder = Folder.of(projectId, req.getName(), parentId);
         Folder saved = folderRepository.save(folder);

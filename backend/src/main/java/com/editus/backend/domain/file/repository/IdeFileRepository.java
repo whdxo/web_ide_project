@@ -8,4 +8,9 @@ public interface IdeFileRepository extends JpaRepository<IdeFile, Long> {
     List<IdeFile> findByProjectId(Long projectId);
 
     boolean existsByFolderId(Long folderId);
+    boolean existsByProjectIdAndFolderIdAndName(
+            Long projectId,
+            Long folderId,
+            String name)
+            ;
 }
