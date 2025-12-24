@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { ApiResponse } from '@/shared/types/common.types';
 import type { 
   LoginRequest, 
   LoginResponse, 

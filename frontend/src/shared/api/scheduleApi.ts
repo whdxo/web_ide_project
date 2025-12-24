@@ -4,9 +4,6 @@ import type {
   GetSprintsResponse, 
   CreateSprintRequest, 
   CreateSprintResponse, 
-  GetTodosResponse, 
-  CreateTodoRequest, 
-  CreateTodoResponse, 
   GetTasksResponse, 
   CreateTaskRequest, 
   CreateTaskResponse, 
@@ -14,8 +11,44 @@ import type {
   UpdateTaskAssigneeRequest 
 } from '@/shared/features-types/schedule.types';
 
+// ===== 백엔드 TODO 응답 형식 =====
+interface TodoApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+export interface TodoResponse {
+  id: number;
+  content: string;
+  title: string;
+  completed: boolean;
+  dueDate: string | null;
+  priority: number;
+  priorityLabel: string;
+  projectName: string | null;
+  projectId: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TodoCreateRequest {
+  content: string;
+  dueDate?: string;
+  priority?: number;
+  projectId?: number;
+}
+
+export interface TodoUpdateRequest {
+  content?: string;
+  completed?: boolean;
+  dueDate?: string;
+  priority?: number;
+  projectId?: number;
+}
+
+
 export const scheduleApi = {
-  // Sprints
+  // ===== Sprints =====
   getSprints: async (projectId: number): Promise<GetSprintsResponse> => {
     const response = await apiClient.get<GetSprintsResponse>(`/api/projects/${projectId}/sprints`);
     return response.data;
@@ -25,25 +58,36 @@ export const scheduleApi = {
     return response.data;
   },
 
-  // Personal TODOs
-  getTodos: async (): Promise<GetTodosResponse> => {
-    const response = await apiClient.get<GetTodosResponse>('/api/todos');
-    return response.data;
-  },
-  createTodo: async (data: CreateTodoRequest): Promise<CreateTodoResponse> => {
-    const response = await apiClient.post<CreateTodoResponse>('/api/todos', data);
-    return response.data;
-  },
-  updateTodo: async (todoId: number, data: Partial<CreateTodoRequest>): Promise<CreateTodoResponse> => {
-    const response = await apiClient.put<CreateTodoResponse>(`/api/todos/${todoId}`, data);
-    return response.data;
-  },
-  deleteTodo: async (todoId: number): Promise<ApiResponse<null>> => {
-    const response = await apiClient.delete<ApiResponse<null>>(`/api/todos/${todoId}`);
-    return response.data;
+  // ===== Personal TODOs (백엔드 연동) =====
+  getTodos: async (params?: {
+    completed?: boolean;
+    dueDate?: string;
+    projectId?: number;
+  }): Promise<TodoResponse[]> => {
+    const response = await apiClient.get<TodoApiResponse<TodoResponse[]>>('/api/todos', { params });
+    return response.data.data;
   },
 
-  // Team Tasks
+  createTodo: async (data: TodoCreateRequest): Promise<TodoResponse> => {
+    const response = await apiClient.post<TodoApiResponse<TodoResponse>>('/api/todos', data);
+    return response.data.data;
+  },
+
+  updateTodo: async (todoId: number, data: TodoUpdateRequest): Promise<TodoResponse> => {
+    const response = await apiClient.put<TodoApiResponse<TodoResponse>>(`/api/todos/${todoId}`, data);
+    return response.data.data;
+  },
+
+  toggleTodo: async (todoId: number): Promise<TodoResponse> => {
+    const response = await apiClient.patch<TodoApiResponse<TodoResponse>>(`/api/todos/${todoId}/toggle`);
+    return response.data.data;
+  },
+
+  deleteTodo: async (todoId: number): Promise<void> => {
+    await apiClient.delete(`/api/todos/${todoId}`);
+  },
+
+  // ===== Team Tasks =====
   getTasks: async (projectId: number): Promise<GetTasksResponse> => {
     const response = await apiClient.get<GetTasksResponse>(`/api/projects/${projectId}/tasks`);
     return response.data;

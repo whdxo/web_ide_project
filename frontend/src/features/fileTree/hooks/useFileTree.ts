@@ -1,10 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { fileApi } from '@/shared/api/fileApi';
 
-export const useFileTree = (projectId: number) => {
+export const useFileTree = (projectId: number | null) => {
   return useQuery({
-    queryKey: ['files', projectId],
-    queryFn: () => fileApi.getProjectTree(projectId),
+    queryKey: ['projectTree', projectId],
+    queryFn: async () => {
+      if (!projectId) throw new Error('Project ID is required');
+      const response = await fileApi.getProjectTree(projectId);
+      return response.data;
+    },
     enabled: !!projectId,
+    staleTime: 30000,
   });
 };

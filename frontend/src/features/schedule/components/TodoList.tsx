@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
-import { useTodoStore } from "../store/todoStore";
+import { useTodos, useCreateTodo, useDeleteTodo, useToggleTodo } from "../hooks/useTodo";
 import { VscTrash } from "react-icons/vsc";
 
 interface TodoListProps {
@@ -9,37 +9,44 @@ interface TodoListProps {
 
 export function TodoList({ isMainPage = false }: TodoListProps) {
   const selectedDate = useScheduleStore((s) => s.selectedDate);
-  const { todos, addTodo, removeTodo, toggleTodo } = useTodoStore();
+  
+  // 🔥 React Query로 API 호출
+  const { data: todos = [], isLoading } = useTodos({ dueDate: selectedDate });
+  const createTodo = useCreateTodo();
+  const deleteTodo = useDeleteTodo();
+  const toggleTodo = useToggleTodo();
 
-  const todayTodos = todos.filter((t) => t.dueDate === selectedDate);
-
-  // 🔹 모달 상태
+  // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 🔹 입력 상태
+  // 입력 상태
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
 
   const resetForm = () => {
     setTitle("");
-    setDescription("");
     setPriority("MEDIUM");
   };
 
   const handleCreateTodo = () => {
     if (!title.trim()) return;
 
-    addTodo({
-      title,
-      description,
-      priority,
-      dueDate: selectedDate,
-      projectName: "Web IDE Project", // 현재는 하드코딩, 나중에 실제 프로젝트명으로 변경 필요
-    });
-    
-    resetForm();
-    setIsModalOpen(false);
+    const priorityNum = priority === "LOW" ? 0 : priority === "HIGH" ? 2 : 1;
+
+    // 🔥 API 호출
+    createTodo.mutate(
+      {
+        content: title,
+        dueDate: selectedDate,
+        priority: priorityNum,
+      },
+      {
+        onSuccess: () => {
+          resetForm();
+          setIsModalOpen(false);
+        },
+      }
+    );
   };
 
   return (
@@ -48,14 +55,16 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
       <div className="p-3 text-sm">
         <h3 className="font-semibold mb-2">Todo List</h3>
 
-        {todayTodos.length === 0 && (
-          <p className="text-xs text-gray-400">
-            등록된 TODO가 없습니다.
-          </p>
+        {isLoading && (
+          <p className="text-xs text-gray-400">로딩 중...</p>
+        )}
+
+        {!isLoading && todos.length === 0 && (
+          <p className="text-xs text-gray-400">등록된 TODO가 없습니다.</p>
         )}
 
         <ul className="space-y-1">
-          {todayTodos.map((todo) => (
+          {todos.map((todo) => (
             <li
               key={todo.id}
               className={`flex items-center justify-between rounded px-2 py-1 text-xs
@@ -67,25 +76,23 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => toggleTodo(todo.id)}
+                  onChange={() => toggleTodo.mutate(todo.id)}
                   className="accent-blue-500"
                 />
 
                 {/* 제목 */}
-                <span
-                  className={todo.completed ? "line-through" : ""}
-                >
+                <span className={todo.completed ? "line-through" : ""}>
                   {isMainPage && todo.projectName ? (
                     <span className="font-bold text-gray-300 mr-1">
                       ({todo.projectName})
                     </span>
                   ) : null}
-                  {todo.title}
+                  {todo.content}
                 </span>
               </div>
 
               <button
-                onClick={() => removeTodo(todo.id)}
+                onClick={() => deleteTodo.mutate(todo.id)}
                 className="p-1 hover:bg-red-600 rounded"
               >
                 <VscTrash size={14} />
