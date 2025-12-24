@@ -44,7 +44,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
     set({
       openFiles: newFiles,
-      activeFileId: activeFileId === fileId ? newFiles.at(-1)?.id ?? null : activeFileId,
+      activeFileId: activeFileId === fileId ? newFiles[newFiles.length - 1]?.id ?? null : activeFileId,
     });
   },
 

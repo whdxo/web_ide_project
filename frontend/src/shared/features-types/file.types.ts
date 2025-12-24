@@ -3,18 +3,18 @@ import type { ApiResponse } from '@/shared/types/common.types';
 export type NodeType = 'FILE' | 'FOLDER';
 
 // 파일/폴더 트리 노드
-export interface TreeNode {
+export interface FileNode {
   id: number;
   name: string;
   type: NodeType;
-  children?: TreeNode[];
+  children?: FileNode[];
 }
 
 // 프로젝트 트리 응답
 export interface ProjectTree {
   projectId: number;
   name: string;
-  rootFolders: TreeNode[];
+  rootFolders: FileNode[];
 }
 
 // 파일 상세 정보

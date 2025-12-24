@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { TreeNode } from "@/shared/features-types/file.types";
+import type { FileNode } from "@/shared/features-types/file.types";
 import { useEditorStore } from "../../editor/store/editorStore";
 import { useFileOperations } from "../hooks/useFileOperations";
 import { VscNewFile, VscNewFolder, VscTrash } from "react-icons/vsc";
@@ -9,7 +9,7 @@ export function FileNode({
   projectId,
   depth = 0,
 }: {
-  node: TreeNode;
+  node: FileNode;
   projectId: number;
   depth?: number;
 }) {

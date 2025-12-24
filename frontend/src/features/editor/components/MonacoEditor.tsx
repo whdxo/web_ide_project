@@ -17,7 +17,7 @@ export function MonacoEditor() {
   // 파일 내용 로드 완료 시 에디터에 반영
   useEffect(() => {
     if (fileData && activeFile) {
-      updateFileContent(activeFile.id, fileData.content);
+      updateFileContent(activeFile.id, fileData.data.content);
     }
   }, [fileData, activeFile, updateFileContent]);
 
