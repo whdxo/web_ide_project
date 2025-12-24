@@ -28,7 +28,7 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">내 프로젝트</h1>
+        <h1 className="text-2xl font-bold text-white">내 프로젝트</h1>
         <div className="space-x-4">
           <Button variant="outline" onClick={onOpenJoinModal}>
             초대 코드로 참여
@@ -44,33 +44,30 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
           <p className="text-gray-500 mb-4">아직 참여 중인 프로젝트가 없습니다.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {projects?.map((project) => (
             <div
               key={project.project_id}
               onClick={() => navigate(`/projects/${project.project_id}/editor`)}
-              className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer relative group"
+              className="bg-white hover:bg-blue-600 h-64 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer relative group flex flex-col justify-center items-center"
             >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {project.name}
-                </h3>
-                {user?.userId === project.owner_id && (
-                  <button
-                    onClick={(e) => handleDelete(e, project.project_id)}
-                    className="text-gray-400 hover:text-red-500 p-1 rounded-full hover:bg-red-50 transition-colors"
-                    title="프로젝트 삭제"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                )}
-              </div>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                {project.description || '설명이 없습니다.'}
+              <h3 className="text-3xl font-bold text-gray-900 group-hover:text-white transition-colors duration-300 text-center px-4">
+                {project.name}
+              </h3>
+              
+              <p className="text-blue-100 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-4 absolute top-1/2 pt-8">
+                {project.project_type === 'PERSONAL' ? '개인 프로젝트' : '팀 프로젝트'}
               </p>
-              <div className="flex justify-between items-center text-sm text-gray-500">
-                <span>{new Date(project.created_at).toLocaleDateString()}</span>
-              </div>
+
+              {user?.userId === project.owner_id && (
+                <button
+                  onClick={(e) => handleDelete(e, project.project_id)}
+                  className="absolute top-6 right-6 text-gray-300 group-hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                  title="프로젝트 삭제"
+                >
+                  <Trash2 size={24} />
+                </button>
+              )}
             </div>
           ))}
         </div>
