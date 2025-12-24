@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { todoApi, TodoResponse } from "../api/todoApi";
 
 export interface Todo {
   id: number;
@@ -7,65 +8,86 @@ export interface Todo {
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate: string;
   completed: boolean;
-  projectName?: string; // 프로젝트명 추가
+  projectName?: string;  // 백엔드에서 제공!
 }
 
 interface TodoState {
   todos: Todo[];
-  addTodo: (todo: Omit<Todo, "id" | "completed">) => void;
-  removeTodo: (id: number) => void;
-  toggleTodo: (id: number) => void;
+  loading: boolean;
+  error: string | null;
+
+  fetchTodos: (dueDate?: string) => Promise<void>;
+  addTodo: (content: string, dueDate: string, priority: number, projectId?: number) => Promise<void>;
+  removeTodo: (id: number) => Promise<void>;
+  toggleTodo: (id: number) => Promise<void>;
 }
 
-// 초기 Mock Data
-const INITIAL_TODOS: Todo[] = [
-  {
-    id: 1,
-    title: "와이어프레임 작업 진행하기1",
-    priority: "HIGH",
-    dueDate: new Date().toISOString().slice(0, 10),
-    completed: false,
-    projectName: "Web IDE Project",
-  },
-  {
-    id: 2,
-    title: "와이어프레임 작업 진행하기2",
-    priority: "MEDIUM",
-    dueDate: new Date().toISOString().slice(0, 10),
-    completed: false,
-    projectName: "Travel",
-  },
-  {
-    id: 3,
-    title: "와이어프레임 작업 진행하기3",
-    priority: "LOW",
-    dueDate: new Date().toISOString().slice(0, 10),
-    completed: false,
-    projectName: "Dream",
-  },
-];
+// API 응답을 프론트 형식으로 변환
+function convertToFrontendTodo(apiTodo: TodoResponse): Todo {
+  return {
+    id: apiTodo.id,
+    title: apiTodo.content,
+    priority: apiTodo.priorityLabel as "LOW" | "MEDIUM" | "HIGH",
+    dueDate: apiTodo.dueDate || new Date().toISOString().slice(0, 10),
+    completed: apiTodo.completed,
+    projectName: apiTodo.projectName || undefined,  // 백엔드에서 제공!
+  };
+}
 
 export const useTodoStore = create<TodoState>((set) => ({
-  todos: INITIAL_TODOS,
-  addTodo: (todo) =>
-    set((state) => ({
-      todos: [
-        ...state.todos,
-        {
-          id: Date.now(),
-          completed: false,
-          ...todo,
-        },
-      ],
-    })),
-  removeTodo: (id) =>
-    set((state) => ({
-      todos: state.todos.filter((t) => t.id !== id),
-    })),
-  toggleTodo: (id) =>
-    set((state) => ({
-      todos: state.todos.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      ),
-    })),
+  todos: [],
+  loading: false,
+  error: null,
+
+  fetchTodos: async (dueDate?: string) => {
+    set({ loading: true, error: null });
+    try {
+      const apiTodos = await todoApi.getTodos(dueDate ? { dueDate } : undefined);
+      const todos = apiTodos.map(convertToFrontendTodo);
+      set({ todos, loading: false });
+    } catch (error) {
+      set({ error: "Failed to fetch todos", loading: false });
+      console.error(error);
+    }
+  },
+
+  addTodo: async (content: string, dueDate: string, priority: number, projectId?: number) => {
+    set({ loading: true, error: null });
+    try {
+      const created = await todoApi.createTodo({ content, dueDate, priority, projectId });
+      const newTodo = convertToFrontendTodo(created);
+      set((state) => ({
+        todos: [...state.todos, newTodo],
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: "Failed to create todo", loading: false });
+      console.error(error);
+    }
+  },
+
+  removeTodo: async (id: number) => {
+    try {
+      await todoApi.deleteTodo(id);
+      set((state) => ({
+        todos: state.todos.filter((t) => t.id !== id),
+      }));
+    } catch (error) {
+      set({ error: "Failed to delete todo" });
+      console.error(error);
+    }
+  },
+
+  toggleTodo: async (id: number) => {
+    try {
+      const updated = await todoApi.toggleTodo(id);
+      const updatedTodo = convertToFrontendTodo(updated);
+      set((state) => ({
+        todos: state.todos.map((t) => (t.id === id ? updatedTodo : t)),
+      }));
+    } catch (error) {
+      set({ error: "Failed to toggle todo" });
+      console.error(error);
+    }
+  },
 }));
