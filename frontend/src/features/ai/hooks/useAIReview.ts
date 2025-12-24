@@ -1,9 +1,9 @@
-interface Review {
-  id: string;
-  content: string;
-  rating: number;
-}
+import { useMutation } from '@tanstack/react-query';
+import { aiApi } from '@/shared/api/aiApi';
+import type { AIReviewRequest } from '@/shared/features-types/ai.types';
 
-export const useAIReview = (): { review: Review | null } => {
-  return { review: null };
+export const useAIReview = () => {
+  return useMutation({
+    mutationFn: (data: AIReviewRequest) => aiApi.reviewCode(data),
+  });
 };

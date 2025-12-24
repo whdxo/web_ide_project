@@ -2,24 +2,25 @@ package com.editus.backend.domain.project.controller;
 
 import com.editus.backend.domain.auth.entity.User;
 import com.editus.backend.domain.auth.repository.UserRepository;
-import com.editus.backend.domain.project.dto.InvitationCreateRequest;
-import com.editus.backend.domain.project.dto.InvitationResponse;
-import com.editus.backend.domain.project.dto.ProjectJoinResponse;
-import com.editus.backend.domain.project.dto.ProjectMemberResponse;
+import com.editus.backend.domain.project.dto.*;
 import com.editus.backend.domain.project.entity.Project;
 import com.editus.backend.domain.project.entity.ProjectMember;
 import com.editus.backend.domain.project.service.ProjectService;
+import com.editus.backend.domain.file.dto.FileNodeDto;
+import com.editus.backend.global.common.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,8 +28,39 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class ProjectController {
 
+    // HEAD dependencies
     private final ProjectService projectService;
     private final UserRepository userRepository;
+
+    // Develop dependencies (Mocks)
+    private final List<ProjectDto> projects = new ArrayList<>();
+    private final AtomicLong idGenerator = new AtomicLong(1);
+
+    // Constructor for Mock Data (from Develop)
+    // Note: RequiredArgsConstructor handles final fields.
+    // projectService/userRepository must be injected.
+    // The non-final fields (projects, idGenerator) are initialized inline.
+    // However, existing code had a constructor for mock data init.
+    // Since we are using @RequiredArgsConstructor for DI, we should use
+    // @PostConstruct or inline init block for mocks if possible,
+    // or just checking if list is empty.
+    // Or we can manually remove final from mocks and use @PostConstruct?
+    // Actually, `projects` is final and initialized inline. `idGenerator` too.
+    // But we need to add the default item.
+    // I'll add a @PostConstruct for that.
+
+    @jakarta.annotation.PostConstruct
+    public void initMockData() {
+        if (projects.isEmpty()) {
+            projects.add(ProjectDto.builder()
+                    .projectId(idGenerator.getAndIncrement())
+                    .name("Demo Project")
+                    .description("This is a demo project")
+                    .ownerId(1L)
+                    .createdAt(LocalDateTime.now().toString())
+                    .build());
+        }
+    }
 
     // Helper to get current user
     private User getCurrentUser(Principal principal) {
@@ -39,9 +71,92 @@ public class ProjectController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "사용자 정보를 찾을 수 없습니다."));
     }
 
+    // --- Develop Branch Endpoints (Updated paths to include /projects prefix due
+    // to class level being /api) ---
+
+    @GetMapping("/projects")
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getProjects() {
+        try {
+            System.out.println("Requesting projects: " + projects);
+            return ResponseEntity.ok(ApiResponse.success(projects));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    @PostMapping("/projects")
+    public ResponseEntity<ApiResponse<ProjectDto>> createProject(@RequestBody CreateProjectRequest request) {
+        ProjectDto newProject = ProjectDto.builder()
+                .projectId(idGenerator.getAndIncrement())
+                .name(request.getName())
+                .description(request.getDescription())
+                .ownerId(1L) // Mock user ID
+                .createdAt(LocalDateTime.now().toString())
+                .projectType(request.getProjectType())
+                .build();
+
+        projects.add(newProject);
+        return ResponseEntity.ok(ApiResponse.success(newProject));
+    }
+
+    @GetMapping("/projects/{projectId}/tree")
+    public ResponseEntity<ApiResponse<ProjectTreeResponseDto>> getProjectTree(@PathVariable Long projectId) {
+        List<FileNodeDto> children = new ArrayList<>();
+        children.add(new FileNodeDto(101L, "main.ts", "FILE", null));
+
+        List<FileNodeDto> rootFolders = new ArrayList<>();
+        rootFolders.add(new FileNodeDto(100L, "src", "FOLDER", children));
+        rootFolders.add(new FileNodeDto(102L, "README.md", "FILE", null));
+
+        ProjectTreeResponseDto treeData = new ProjectTreeResponseDto(projectId, "Project " + projectId, rootFolders);
+
+        return ResponseEntity.ok(ApiResponse.success(treeData));
+    }
+
+    @DeleteMapping("/projects/{projectId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {
+        // TODO: 실제 DB 삭제 및 권한 체크 로직
+        // 현재는 메모리 리스트에서 제거
+        projects.removeIf(p -> p.getProjectId().equals(projectId));
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @GetMapping("/projects/{projectId}")
+    public ResponseEntity<ApiResponse<ProjectDto>> getProject(@PathVariable Long projectId) {
+        ProjectDto project = projects.stream()
+                .filter(p -> p.getProjectId().equals(projectId))
+                .findFirst()
+                .orElse(null);
+        return ResponseEntity.ok(ApiResponse.success(project));
+    }
+
+    @GetMapping("/projects/{projectId}/sprints")
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getSprints(@PathVariable Long projectId) {
+        List<Map<String, Object>> sprints = new ArrayList<>();
+        Map<String, Object> sprint = new HashMap<>();
+        sprint.put("sprintId", 1L);
+        sprint.put("name", "Sprint 1");
+        sprint.put("status", "IN_PROGRESS");
+        sprints.add(sprint);
+        return ResponseEntity.ok(ApiResponse.success(sprints));
+    }
+
+    @PostMapping("/projects/{projectId}/sprints")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createSprint(@PathVariable Long projectId,
+            @RequestBody Map<String, Object> request) {
+        Map<String, Object> sprint = new HashMap<>();
+        sprint.put("sprintId", 2L);
+        sprint.put("name", request.get("name"));
+        sprint.put("status", "PLANNED");
+        return ResponseEntity.ok(ApiResponse.success(sprint));
+    }
+
+    // --- HEAD Branch Endpoints (Real Implementation) - Wrapped in ApiResponse ---
+
     // 1. 초대 링크 생성 (리더용)
     @PostMapping("/projects/{projectId}/invitations")
-    public ResponseEntity<InvitationResponse> createInvitation(
+    public ResponseEntity<ApiResponse<InvitationResponse>> createInvitation(
             @PathVariable Long projectId,
             @RequestBody(required = false) InvitationCreateRequest request,
             Principal principal) {
@@ -51,62 +166,44 @@ public class ProjectController {
 
         String code = projectService.createInvitation(projectId, user.getUserId(), expiresInHours);
 
-        // 만료 시간 계산 (응답용 - 서비스에서 반환하거나 재계산. 여기서는 재계산/추정 하거나 서비스가 DTO를 반환하게 수정하는게 맞지만,
-        // 서비스가 code만 반환하므로 여기서 시간 계산 로직 중복 혹은 서비스 리팩토링 필요.
-        // 서비스 로직에서 시간을 계산했으므로, 일관성을 위해 서비스가 Invitation 객체나 DTO를 반환하는게 좋았을 것임.
-        // 현재는 code만 반환하므로, 여기서 DB 조회를 다시 하거나 시간을 다시 계산해서 응답.
-        // 간단하게 만료시간을 여기서 다시 계산해서 반환 (정확하지 않을 수 있음) 또는 서비스 수정.
-        // 서비스 수정이 번거로우니 대략적인 시간 반환 (코드 생성 시점 기준).
-        // 하지만 "응답: expiresAt"이 있으므로 정확해야 함.
-        // 서비스에서 Invitation을 반환하도록 수정하는 것 보다는, Repository에서 code로 조회해서 반환하는게 나을듯.
-        // 하지만 성능상 비효율적.
-        // 24시간 기본값 사용 시 일치.
-        // 여기서는 user spec상 "응답: invitationUrl, code, expiresAt" 이므로 중요.
-        // 생성된 값을 정확히 알기 위해 code로 다시 조회는 비효율적이나 안전함.
-        // 또는 서비스가 Invitation 객체를 반환하도록 수정하는 것이 맞음.
-        // 일단 시간 관계상 여기서는 계산된 값으로 응답 (생성 직후이므로 오차 거의 없음).
         int validHours = (expiresInHours != null && expiresInHours > 0) ? expiresInHours : 24;
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(validHours);
         String invitationUrl = "https://domain.com/invite/" + code; // 도메인은 임시
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(InvitationResponse.builder()
+        InvitationResponse response = InvitationResponse.builder()
                 .invitationUrl(invitationUrl)
                 .code(code)
                 .expiresAt(expiresAt)
-                .build());
+                .build();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     // 2. 초대 링크로 프로젝트 참여 (팀원용)
-    // URL: /api/invitations/{code}/join
-    // Note: This is under /api but outside /projects/{projectId}
     @PostMapping("/invitations/{code}/join")
-    public ResponseEntity<ProjectJoinResponse> joinProject(
+    public ResponseEntity<ApiResponse<ProjectJoinResponse>> joinProject(
             @PathVariable String code,
             Principal principal) {
 
         User user = getCurrentUser(principal);
         Project project = projectService.joinProject(code, user.getUserId());
 
-        return ResponseEntity.ok(ProjectJoinResponse.builder()
+        ProjectJoinResponse response = ProjectJoinResponse.builder()
                 .project(project)
                 .success(true)
-                .build());
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 3. 프로젝트 멤버 목록 조회
+    // 3. 프로젝트 멤버 목록 조회 (Merged: Real Implementation replaces Mock)
     @GetMapping("/projects/{projectId}/members")
-    public ResponseEntity<List<ProjectMemberResponse>> getProjectMembers(
+    public ResponseEntity<ApiResponse<List<ProjectMemberResponse>>> getProjectMembers(
             @PathVariable Long projectId,
             Principal principal) {
 
         User user = getCurrentUser(principal);
         List<ProjectMember> members = projectService.getProjectMembers(projectId, user.getUserId());
-
-        // Owner logic: 서비스에서 멤버 목록을 가져올 때 owner가 포함되어 있는지 확인 필요.
-        // 서비스 구현: projectMemberRepository.findByProjectIdWithUser(projectId).
-        // 만약 Owner가 projectMembers 테이블에 없다면 추가해야 함. 대부분의 구현에서 Owner도 멤버 테이블에 넣음.
-        // 안 넣었다면 여기서 Project 조회해서 추가해야 함.
-        // 일단 DB에 Owner 가 멤버로 들어간다고 가정하고 매핑.
 
         List<ProjectMemberResponse> response = members.stream()
                 .map(pm -> ProjectMemberResponse.builder()
@@ -118,12 +215,12 @@ public class ProjectController {
                         .build())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 4. 멤버 삭제 (리더용)
+    // 4. 멤버 삭제 (리더용) (Merged: Real Implementation replaces Mock)
     @DeleteMapping("/projects/{projectId}/members/{userId}")
-    public ResponseEntity<Void> removeMember(
+    public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long projectId,
             @PathVariable Long userId,
             Principal principal) {
@@ -131,6 +228,8 @@ public class ProjectController {
         User requester = getCurrentUser(principal);
         projectService.removeMember(projectId, userId, requester.getUserId());
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success(null)); // 204 No Content with body is weird, using 200 with null
+                                                             // wrapped or just noContent.
+        // ApiResponse usually implies a body. I'll invoke success(null).
     }
 }

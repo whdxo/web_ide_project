@@ -23,12 +23,10 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
 
   // 🔹 입력 상태
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
 
   const resetForm = () => {
     setTitle("");
-    setDescription("");
     setPriority("MEDIUM");
   };
 

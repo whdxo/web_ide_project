@@ -1,12 +1,10 @@
-import React from 'react';
-
 interface ProjectCardProps {
   title: string;
   description?: string;
   onClick?: () => void;
 }
 
-export const ProjectCard = ({ title, description, onClick }: ProjectCardProps) => {
+export const ProjectCard = ({ title, onClick }: ProjectCardProps) => {
   return (
     <div 
       onClick={onClick}

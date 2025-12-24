@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { FileNode } from "../types/file.types";
+import type { FileNode } from "@/shared/features-types/file.types";
+
 
 interface FileTreeState {
   tree: FileNode[];
@@ -7,21 +8,21 @@ interface FileTreeState {
   setTree: (tree: FileNode[]) => void;
 
   addNode: (
-    parentId: string,
+    parentId: number,
     newNode: FileNode
   ) => void;
 
-  deleteNode: (id: string) => void;
+  deleteNode: (id: number) => void;
 }
 
 /* ===== 유틸 함수 ===== */
 function addNodeRecursive(
   nodes: FileNode[],
-  parentId: string,
+  parentId: number,
   newNode: FileNode
 ): FileNode[] {
   return nodes.map((node) => {
-    if (node.id === parentId && node.type === "folder") {
+    if (node.id === parentId && node.type === "FOLDER") {
       return {
         ...node,
         children: [...(node.children ?? []), newNode],
@@ -41,7 +42,7 @@ function addNodeRecursive(
 
 function deleteNodeRecursive(
   nodes: FileNode[],
-  targetId: string
+  targetId: number
 ): FileNode[] {
   return nodes
     .filter((node) => node.id !== targetId)
