@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMembers, useRemoveMember } from "@/features/member/hooks/useMembers";
-import { InviteMemberModal } from "@/features/member/components/InviteMembermodal";
+import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
 
 interface SettingsPanelProps {
   projectId?: number;
