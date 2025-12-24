@@ -51,12 +51,12 @@ public class AIReviewService {
 
         // 4. ⭐ DB에 저장
         AIReview review = AIReview.builder()
-                .userId(1L)  // 임시, 나중에 JWT에서 가져옴
+                .userId(1L) // 임시, 나중에 JWT에서 가져옴
                 .fileName(request.getFileName())
                 .filePath(request.getFilePath())
                 .score(score)
                 .summary(summary)
-                .suggestions(toJson(suggestions))  // JSON 문자열로 변환
+                .suggestions(toJson(suggestions)) // JSON 문자열로 변환
                 .build();
 
         AIReview saved = reviewRepository.save(review);
@@ -86,24 +86,24 @@ public class AIReviewService {
 
     private String buildPrompt(String fileName, String fileContent) {
         return String.format("""
-            다음 %s 파일을 분석하여 JSON 형식으로 응답해주세요:
+                다음 %s 파일을 분석하여 JSON 형식으로 응답해주세요:
 
-            1. score: 0-100점 사이의 코드 품질 점수
-            2. summary: 한 줄 평가 (한국어, 50자 이내)
-            3. suggestions: 보완할 점 3-5개 (한국어, 각 항목 간단명료하게)
+                1. score: 0-100점 사이의 코드 품질 점수
+                2. summary: 한 줄 평가 (한국어, 50자 이내)
+                3. suggestions: 보완할 점 3-5개 (한국어, 각 항목 간단명료하게)
 
-            JSON 형식만 반환:
-            {
-              "score": 85,
-              "summary": "전반적으로 잘 작성된 코드입니다.",
-              "suggestions": ["개선점1", "개선점2", "개선점3"]
-            }
+                JSON 형식만 반환:
+                {
+                  "score": 85,
+                  "summary": "전반적으로 잘 작성된 코드입니다.",
+                  "suggestions": ["개선점1", "개선점2", "개선점3"]
+                }
 
-            코드:
-            ```
-            %s
-            ```
-            """, fileName, fileContent);
+                코드:
+                ```
+                %s
+                ```
+                """, fileName, fileContent);
     }
 
     private String callOpenAI(String prompt) {
@@ -113,10 +113,8 @@ public class AIReviewService {
                 "model", model,
                 "messages", List.of(
                         Map.of("role", "system", "content", "당신은 코드 리뷰 전문가입니다."),
-                        Map.of("role", "user", "content", prompt)
-                ),
-                "temperature", 0.3
-        );
+                        Map.of("role", "user", "content", prompt)),
+                "temperature", 0.3);
 
         Map<String, Object> response = webClient.post()
                 .uri(apiUrl)
