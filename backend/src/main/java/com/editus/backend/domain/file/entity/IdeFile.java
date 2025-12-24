@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Table(name = "ide_file")
 public class IdeFile {
 
     @Id
@@ -22,6 +23,7 @@ public class IdeFile {
     @Column(nullable = false)
     private Long folderId;
 
+    /* ===== 파일 메타데이터 ===== */
     @Column(nullable = false)
     private String name;
 
@@ -32,6 +34,10 @@ public class IdeFile {
     @Column(nullable = false)
     private String content;
 
+    @Column(name = "content_key")
+    private String contentKey;
+
+    /* ===== 타임스탬프 ===== */
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -46,7 +52,16 @@ public class IdeFile {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /* ===== 비즈니스 메서드 ===== */
     public void updateContent(String content) {
         this.content = content;
+    }
+
+    public void updateLanguage(String language) {
+        this.language = language;
+    }
+
+    public void setContentKey(String contentKey) {
+        this.contentKey = contentKey;
     }
 }

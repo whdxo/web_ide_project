@@ -28,3 +28,8 @@ cors:
 logging:
   level:
     com.editus.backend: DEBUG
+
+aws:
+  s3:
+    bucket: editus-dev-bucket
+    region: ap-northeast-2

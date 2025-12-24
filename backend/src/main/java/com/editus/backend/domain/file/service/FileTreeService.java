@@ -9,7 +9,6 @@ import com.editus.backend.domain.file.repository.FolderRepository;
 import com.editus.backend.domain.file.repository.IdeFileRepository;
 import com.editus.backend.domain.file.dto.CreateFolderRequest;
 import com.editus.backend.domain.file.dto.FolderResponse;
-import com.editus.backend.domain.file.entity.Folder;
 import com.editus.backend.domain.file.dto.TreeNodeResponse;
 import com.editus.backend.domain.file.dto.TreeResponse;
 import com.editus.backend.domain.file.util.LanguageDetector;
@@ -40,13 +39,30 @@ public class FileTreeService {
             throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
         }
 
+        Optional<IdeFile> existingOpt =
+                ideFileRepository.findByProjectIdAndFolderIdAndName(
+                        projectId,
+                        req.getFolderId(),
+                        req.getName()
+                );
+
+        if (existingOpt.isPresent()) {
+            IdeFile existing = existingOpt.get();
+            // 내용 덮어쓰기
+            existing.updateContent(req.getContent() == null ? "" : req.getContent());
+            // ✅ 파일명 기반 언어 자동 감지/갱신
+            existing.updateLanguage(LanguageDetector.detect(req.getName()));
+            // save() 필요 없음 (Dirty Checking)
+            return FileResponse.from(existing);
+        }
+
         String language = LanguageDetector.detect(req.getName());
 
         IdeFile file = IdeFile.builder()
                 .projectId(projectId)
                 .folderId(req.getFolderId())
                 .name(req.getName())
-                .language(req.getLanguage())
+                .language(language)
                 .content(req.getContent() == null ? "" : req.getContent())
                 .build();
 
