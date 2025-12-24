@@ -1,6 +1,6 @@
 package com.editus.backend.domain.user.controller;
 
-import com.editus.backend.global.response.ApiResponse;
+import com.editus.backend.global.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -18,9 +18,13 @@ export function SettingsPanel({ projectId, currentUserId, onOpenPanel }: Setting
   // 멤버 정보 가져오기
   const { data: members } = useMembers(projectId || 0);
   const removeMember = useRemoveMember(projectId || 0);
-  
+
   // 내 멤버 정보
   const myMember = members?.find(m => m.user_id === currentUserId);
+
+  // TODO: 나중에 removeMember, myMember 사용 예정
+  void removeMember;
+  void myMember;
 
   const handleInvite = () => {
     setIsInviteModalOpen(true);
