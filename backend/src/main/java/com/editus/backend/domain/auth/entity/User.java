@@ -1,4 +1,5 @@
 package com.editus.backend.domain.auth.entity;
+// TODO: 이세종 - User 엔티티 구현
 
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -28,13 +29,10 @@ public class User {
     private String password;
 
     @Column(length = 20)
-    private String provider;
+    private String provider; // google, kakao, naver
 
     @Column(name = "provider_id", length = 50)
-    private String providerId;
-
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private String providerId; // sub(google), id(kakao)
 
     @Builder
     public User(String name, String email, String password, String provider, String providerId) {
@@ -44,6 +42,9 @@ public class User {
         this.provider = provider;
         this.providerId = providerId;
     }
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
