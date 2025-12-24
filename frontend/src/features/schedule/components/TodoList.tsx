@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
 import { useTodos, useCreateTodo, useDeleteTodo, useToggleTodo } from "../hooks/useTodo";
 import { VscTrash } from "react-icons/vsc";
@@ -9,14 +9,16 @@ interface TodoListProps {
 
 export function TodoList({ isMainPage = false }: TodoListProps) {
   const selectedDate = useScheduleStore((s) => s.selectedDate);
-  
-  // 🔥 React Query로 API 호출
-  const { data: todos = [], isLoading } = useTodos({ dueDate: selectedDate });
-  const createTodo = useCreateTodo();
-  const deleteTodo = useDeleteTodo();
-  const toggleTodo = useToggleTodo();
+  const { todos, loading, fetchTodos, addTodo, removeTodo, toggleTodo } = useTodoStore();
 
-  // 모달 상태
+  // 선택된 날짜가 변경될 때마다 Todo 조회
+  useEffect(() => {
+    fetchTodos(selectedDate);
+  }, [selectedDate, fetchTodos]);
+
+  const todayTodos = todos; // 이미 서버에서 필터링되어 옴
+
+  // 🔹 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 입력 상태
@@ -28,25 +30,15 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
     setPriority("MEDIUM");
   };
 
-  const handleCreateTodo = () => {
+  const handleCreateTodo = async () => {
     if (!title.trim()) return;
 
     const priorityNum = priority === "LOW" ? 0 : priority === "HIGH" ? 2 : 1;
 
-    // 🔥 API 호출
-    createTodo.mutate(
-      {
-        content: title,
-        dueDate: selectedDate,
-        priority: priorityNum,
-      },
-      {
-        onSuccess: () => {
-          resetForm();
-          setIsModalOpen(false);
-        },
-      }
-    );
+    await addTodo(title, selectedDate, priorityNum);
+
+    resetForm();
+    setIsModalOpen(false);
   };
 
   return (
@@ -55,12 +47,16 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
       <div className="p-3 text-sm">
         <h3 className="font-semibold mb-2">Todo List</h3>
 
-        {isLoading && (
-          <p className="text-xs text-gray-400">로딩 중...</p>
+        {loading && (
+          <p className="text-xs text-gray-400">
+            로딩 중...
+          </p>
         )}
 
-        {!isLoading && todos.length === 0 && (
-          <p className="text-xs text-gray-400">등록된 TODO가 없습니다.</p>
+        {!loading && todayTodos.length === 0 && (
+          <p className="text-xs text-gray-400">
+            등록된 TODO가 없습니다.
+          </p>
         )}
 
         <ul className="space-y-1">

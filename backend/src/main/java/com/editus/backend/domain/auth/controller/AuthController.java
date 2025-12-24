@@ -1,63 +1,54 @@
 package com.editus.backend.domain.auth.controller;
 
-import com.editus.backend.domain.auth.dto.LoginRequest;
-import com.editus.backend.domain.auth.dto.LoginResponse;
+import com.editus.backend.domain.auth.dto.*;
+import com.editus.backend.domain.auth.service.AuthService;
 import com.editus.backend.global.common.dto.ApiResponse;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
+    private final AuthService authService;
+
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
-        // TODO: 실제 인증 로직 구현 (현재는 Mock 응답)
-        
-        LoginResponse.UserDto user = LoginResponse.UserDto.builder()
-                .userId(1L)
-                .name("박영선")
-                .email(request.getEmail())
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-
-        LoginResponse response = LoginResponse.builder()
-                .accessToken("mock-access-token")
-                .refreshToken("mock-refresh-token")
-                .user(user)
-                .build();
-
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody UserLoginDto dto) {
+        log.info("로그인 요청: email={}", dto.getEmail());
+        LoginResponse loginResponse = authService.loginUser(dto);
+        return ResponseEntity.ok(ApiResponse.success(loginResponse));
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout() {
-        return ResponseEntity.ok(ApiResponse.success(null));
+    public ResponseEntity<ApiResponse<String>> logout(Authentication authentication) {
+        log.info("로그아웃 요청: email={}", authentication.getName());
+        authService.logout(authentication.getName());
+        return ResponseEntity.ok(ApiResponse.success("로그아웃 되었습니다"));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<LoginResponse>> refresh() {
-        // Mock refresh
-        LoginResponse.UserDto user = LoginResponse.UserDto.builder()
-                .userId(1L)
-                .name("박영선")
-                .email("test@example.com")
-                .createdAt(LocalDateTime.now().toString())
-                .build();
-
-        LoginResponse response = LoginResponse.builder()
-                .accessToken("new-mock-access-token")
-                .refreshToken("new-mock-refresh-token")
-                .user(user)
-                .build();
-        
-        return ResponseEntity.ok(ApiResponse.success(response));
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refreshToken(@RequestBody TokenRefreshRequest request) {
+        log.info("토큰 재발급 요청");
+        TokenRefreshResponse tokenRefreshResponse = authService.refreshToken(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success(tokenRefreshResponse));
     }
 
     @PutMapping("/password")
-    public ResponseEntity<ApiResponse<Void>> changePassword() {
-        return ResponseEntity.ok(ApiResponse.success(null));
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody PasswordChangeDto dto, Authentication authentication) {
+        log.info("비밀번호 변경 요청: email={}", authentication.getName());
+        authService.changePassword(authentication.getName(), dto);
+        return ResponseEntity.ok(ApiResponse.success("비밀번호가 변경되었습니다"));
+    }
+
+    @GetMapping("/health")
+    public ResponseEntity<ApiResponse<String>> healthCheck() {
+        return ResponseEntity.ok(ApiResponse.success("Auth API is running perfectly!"));
     }
 }
