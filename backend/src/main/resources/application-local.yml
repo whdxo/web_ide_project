@@ -35,10 +35,15 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
+
+  sql:
+    init:
+      mode: always
 
   devtools:
     restart:
@@ -50,6 +55,12 @@ jwt:
 
 cors:
   allowed-origins: http://localhost:5173,http://localhost:3000
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
+    model: gpt-4o-mini
 
 logging:
   level:

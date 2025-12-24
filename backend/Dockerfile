@@ -1,5 +1,4 @@
 # 멀티 스테이지 빌드
-# Spring Boot 4.x = Gradle 최소 8.14 필요
 FROM gradle:8.14-jdk17 AS builder
 
 WORKDIR /app

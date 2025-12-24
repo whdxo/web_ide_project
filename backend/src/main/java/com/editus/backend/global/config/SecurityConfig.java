@@ -55,6 +55,9 @@ public class SecurityConfig {
                         // OAuth2 관련
                         .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
 
+                        // Todo API 인증 없이 허용
+                        .requestMatchers("/api/todos/**").permitAll()
+
                         // 🚧 개발 단계: 전체 허용
                         .anyRequest().permitAll()
 

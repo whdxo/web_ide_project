@@ -6,16 +6,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-        name = "folder",
-        indexes = {
-                @Index(name = "idx_folder_project", columnList = "project_id"),
-                @Index(name = "idx_folder_parent", columnList = "parent_id")
-        }
-)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Builder
 public class Folder {
 
@@ -23,34 +16,24 @@ public class Folder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "project_id", nullable = false)
+    @Column(nullable = false)
     private Long projectId;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "parent_id")
-    private Long parentId; // 루트 폴더면 null
+    // 상위 폴더 (루트면 null)
+    private Long parentId;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-
     @PrePersist
-    private void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
+    void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    private void onUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    // 생성 편의 메서드(선택)
+    // 생성 편의 메서드
     public static Folder of(Long projectId, String name, Long parentId) {
         return Folder.builder()
                 .projectId(projectId)
