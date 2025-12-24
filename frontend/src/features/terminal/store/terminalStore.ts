@@ -2,56 +2,47 @@ import { create } from "zustand";
 
 interface TerminalLine {
   id: string;
-  type: "input" | "output";
+  type: "output" | "error";
   text: string;
+  timestamp: string;
 }
 
 interface TerminalState {
   lines: TerminalLine[];
-  addInput: (text: string) => void;
+  
   addOutput: (text: string) => void;
-  runCommand: (command: string) => void;
+  addError: (text: string) => void;
+  clear: () => void;
 }
 
 export const useTerminalStore = create<TerminalState>((set) => ({
-  lines: [
-    { id: "welcome", type: "output", text: "EditUs Terminal v1.0" },
-  ],
-
-  addInput: (text) =>
-    set((state) => ({
-      lines: [
-        ...state.lines,
-        { id: crypto.randomUUID(), type: "input", text },
-      ],
-    })),
+  lines: [],
 
   addOutput: (text) =>
     set((state) => ({
       lines: [
         ...state.lines,
-        { id: crypto.randomUUID(), type: "output", text },
+        {
+          id: crypto.randomUUID(),
+          type: "output",
+          text,
+          timestamp: new Date().toLocaleTimeString(),
+        },
       ],
     })),
 
-  runCommand: (command) =>
-    set((state) => {
-      const output =
-        command === "help"
-          ? "Available commands: help, clear"
-          : command === "clear"
-          ? ""
-          : `command not found: ${command}`;
+  addError: (text) =>
+    set((state) => ({
+      lines: [
+        ...state.lines,
+        {
+          id: crypto.randomUUID(),
+          type: "error",
+          text,
+          timestamp: new Date().toLocaleTimeString(),
+        },
+      ],
+    })),
 
-      const newLines =
-        command === "clear"
-          ? []
-          : [
-              ...state.lines,
-              { id: crypto.randomUUID(), type: "input", text: command },
-              { id: crypto.randomUUID(), type: "output", text: output },
-            ];
-
-      return { lines: newLines };
-    }),
+  clear: () => set({ lines: [] }),
 }));

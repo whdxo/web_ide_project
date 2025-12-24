@@ -1,6 +1,3 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-
 interface SidebarProps {
   userName?: string;
   onLogout?: () => void;
@@ -8,8 +5,6 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ userName = '영선', onLogout, onMenuClick }: SidebarProps) => {
-  const navigate = useNavigate();
-
   const handleMenuClick = (label: string) => {
     if (onMenuClick) {
       onMenuClick(label);
@@ -17,9 +12,8 @@ export const Sidebar = ({ userName = '영선', onLogout, onMenuClick }: SidebarP
   };
 
   const menuItems = [
-    { label: '받은 초대장', href: '#' },
-    { label: '프로젝트 초대하기', href: '#' },
-    { label: '체크리스트', href: '#' },
+    { label: '새 프로젝트 생성', href: '#' },
+    { label: '초대 코드로 참여', href: '#' },
     { label: '일정', href: '#' },
   ];
 

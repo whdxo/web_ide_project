@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
-import { useTodoStore } from "../store/todoStore";
+import { useTodos, useCreateTodo, useDeleteTodo, useToggleTodo } from "../hooks/useTodo";
 import { VscTrash } from "react-icons/vsc";
 
 interface TodoListProps {
@@ -21,14 +21,12 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
   // 🔹 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 🔹 입력 상태
+  // 입력 상태
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"LOW" | "MEDIUM" | "HIGH">("MEDIUM");
 
   const resetForm = () => {
     setTitle("");
-    setDescription("");
     setPriority("MEDIUM");
   };
 
@@ -62,7 +60,7 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
         )}
 
         <ul className="space-y-1">
-          {todayTodos.map((todo) => (
+          {todos.map((todo) => (
             <li
               key={todo.id}
               className={`flex items-center justify-between rounded px-2 py-1 text-xs
@@ -74,25 +72,23 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
                 <input
                   type="checkbox"
                   checked={todo.completed}
-                  onChange={() => toggleTodo(todo.id)}
+                  onChange={() => toggleTodo.mutate(todo.id)}
                   className="accent-blue-500"
                 />
 
                 {/* 제목 */}
-                <span
-                  className={todo.completed ? "line-through" : ""}
-                >
+                <span className={todo.completed ? "line-through" : ""}>
                   {isMainPage && todo.projectName ? (
                     <span className="font-bold text-gray-300 mr-1">
                       ({todo.projectName})
                     </span>
                   ) : null}
-                  {todo.title}
+                  {todo.content}
                 </span>
               </div>
 
               <button
-                onClick={() => removeTodo(todo.id)}
+                onClick={() => deleteTodo.mutate(todo.id)}
                 className="p-1 hover:bg-red-600 rounded"
               >
                 <VscTrash size={14} />

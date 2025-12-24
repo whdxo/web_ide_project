@@ -1,45 +1,49 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/shared/components/Layout/Sidebar';
-import { ProjectCard } from '@/features/project/components/ProjectCard';
+import { ProjectList } from '@/features/project/components/ProjectList';
 import { SprintView } from '@/features/schedule/components/SprintView';
 import { TodoList } from '@/features/schedule/components/TodoList';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { CreateProjectModal } from './CreateProjectModal';
+import { JoinProjectModal } from './JoinProjectModal';
 
 export const ProjectSelectionPage = () => {
   const navigate = useNavigate();
   const [isTodoOpen, setIsTodoOpen] = useState(false);
-  
-  const projects = [
-    { id: 1, title: 'Web IDE\nProject' },
-    { id: 2, title: 'Travel' },
-    { id: 3, title: 'Dream' },
-  ];
-
-  const handleProjectClick = (projectId: number) => {
-    console.log(`Project ${projectId} clicked`);
-    navigate('/editor');
-  };
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const logout = useAuthStore((state) => state.logout);
 
   const handleMenuClick = (label: string) => {
     if (label === '일정') {
       setIsTodoOpen((prev) => !prev);
+    } else if (label === '새 프로젝트 생성') {
+      setIsCreateModalOpen(true);
+    } else if (label === '초대 코드로 참여') {
+      setIsJoinModalOpen(true);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
     <div className="flex min-h-screen bg-brand-black">
-      <Sidebar onMenuClick={handleMenuClick} />
+      <Sidebar 
+        userName={user?.name} 
+        onMenuClick={handleMenuClick}
+        onLogout={handleLogout}
+      />
       
-      <main className={`flex-1 ml-64 transition-all duration-300 flex items-center justify-center p-12 ${isTodoOpen ? 'mr-80' : ''}`}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-5xl">
-          {projects.map((project) => (
-            <ProjectCard
-              key={project.id}
-              title={project.title}
-              onClick={() => handleProjectClick(project.id)}
-            />
-          ))}
-        </div>
+      <main className={`flex-1 ml-64 transition-all duration-300 p-12 ${isTodoOpen ? 'mr-80' : ''}`}>
+        <ProjectList 
+          onOpenCreateModal={() => setIsCreateModalOpen(true)}
+          onOpenJoinModal={() => setIsJoinModalOpen(true)}
+        />
       </main>
 
       {/* Right Panel (Todo/Schedule) */}
@@ -51,6 +55,16 @@ export const ProjectSelectionPage = () => {
           </div>
         </aside>
       )}
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+      
+      <JoinProjectModal
+        isOpen={isJoinModalOpen}
+        onClose={() => setIsJoinModalOpen(false)}
+      />
     </div>
   );
 };
