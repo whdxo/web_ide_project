@@ -1,4 +1,4 @@
-// 초대 모달 (영선님이랑 상의해보기)
+// 초대 모달
 import { useState } from "react";
 import { IoClose, IoCopy, IoCheckmark } from "react-icons/io5";
 import { useCreateInviteCode } from "../hooks/useMembers";
