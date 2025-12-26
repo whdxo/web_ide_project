@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ChatUser, ChatMessage } from "../types/chat.types";
+import type { ChatUser, ChatMessage } from "@/shared/features-types/chat.types";
 
 interface ChatState {
   users: ChatUser[];

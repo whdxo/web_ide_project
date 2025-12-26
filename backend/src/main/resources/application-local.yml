@@ -26,24 +26,19 @@ spring:
       port: 6379
 
   datasource:
-    url: jdbc:mysql://localhost:3307/editus_dev?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: editus
-    password: editus1234
+    url: jdbc:mysql://127.0.0.1:3307/editus_dev?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USER:editus}
+    password: ${DB_PASSWORD:editus1234}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
-
-  sql:
-    init:
-      mode: always
 
   devtools:
     restart:
