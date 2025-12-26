@@ -12,3 +12,4 @@ public class InvitationResponse {
     private String code;
     private LocalDateTime expiresAt;
 }
+

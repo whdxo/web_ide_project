@@ -24,3 +24,4 @@ public interface InvitationRepository extends JpaRepository<Invitation, Long> {
     @Query("UPDATE Invitation i SET i.deleted = true WHERE i.expiresAt < :now AND i.deleted = false")
     int markAsDeletedByExpiresAtBefore(@Param("now") LocalDateTime now);
 }
+
