@@ -21,11 +21,13 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
+import { codeApi } from "@/shared/api/codeApi";
 
 export function EditorPage() {
   const location = useLocation();
   const { projectId: projectIdParam } = useParams<{ projectId: string }>();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
+  const [isRunning, setIsRunning] = useState(false);
 
   type RightPanelType = "chat" | "todo" | "ai" | "settings" | "members" | null;
   const [rightPanel, setRightPanel] = useState<RightPanelType>(null);
@@ -47,6 +49,25 @@ export function EditorPage() {
 
   const togglePanel = (panel: RightPanelType) => {
     setRightPanel((prev) => (prev === panel ? null : panel));
+  };
+
+  /**
+   * Monaco Editor 언어 → Judge0 언어 변환
+   */
+  const getExecutionLanguage = (monacoLanguage: string): string => {
+    const languageMap: Record<string, string> = {
+      javascript: 'javascript',
+      typescript: 'typescript',
+      python: 'python',
+      java: 'java',
+      cpp: 'cpp',
+      c: 'c',
+      ruby: 'ruby',
+      go: 'go',
+      rust: 'rust',
+      php: 'php',
+    };
+    return languageMap[monacoLanguage.toLowerCase()] || 'python';
   };
 
   const handleSave = () => {
@@ -72,20 +93,64 @@ export function EditorPage() {
     );
   };
 
-  const handleRun = () => {
+  const handleRun = async () => {
     const activeFile = openFiles.find((f) => f.id === activeFileId);
+
     if (!activeFile) {
       addError("실행할 파일이 없습니다");
       return;
     }
 
+    // 로딩 상태 시작
+    setIsRunning(true);
     addOutput(`> Running ${activeFile.name}...`);
+    addOutput('');
 
-    // TODO: 실제 API 호출
-    setTimeout(() => {
-      addOutput("3");
-      addOutput("실행 완료");
-    }, 500);
+    try {
+      // 언어 변환
+      const executionLanguage = getExecutionLanguage(activeFile.language);
+
+      // API 호출
+      const response = await codeApi.executeCode({
+        code: activeFile.content,
+        language: executionLanguage,
+        input: '',
+      });
+
+      // 성공 여부 확인
+      if (!response.success || !response.data) {
+        addError(`실행 실패: ${response.message || '알 수 없는 오류'}`);
+        return;
+      }
+
+      const { output, error, status, time } = response.data;
+
+      // 실행 결과 출력
+      if (output) {
+        addOutput(output);
+      }
+
+      // 에러가 있으면 에러 출력
+      if (error) {
+        addError(error);
+      }
+
+      // 실행 상태 및 시간 출력
+      addOutput('');
+      addOutput(`Status: ${status}`);
+      addOutput(`Execution time: ${time.toFixed(3)}s`);
+      addOutput(`Finished running ${activeFile.name}`);
+
+    } catch (error) {
+      // API 호출 실패
+      const errorMessage = error instanceof Error
+        ? error.message
+        : '코드 실행 중 오류가 발생했습니다';
+      addError(`❌ ${errorMessage}`);
+    } finally {
+      // 로딩 상태 종료
+      setIsRunning(false);
+    }
   };
 
   return (
@@ -180,9 +245,13 @@ export function EditorPage() {
 
           <button
             onClick={handleRun}
-            className="p-2 rounded hover:bg-gray-700 text-green-400 hover:text-green-300"
-            title="코드 실행"
-            disabled={!activeFileId}
+            className={`p-2 rounded hover:bg-gray-700 ${
+              isRunning
+                ? 'text-gray-600 cursor-not-allowed'
+                : 'text-green-400 hover:text-green-300'
+            }`}
+            title={isRunning ? '실행 중...' : '코드 실행'}
+            disabled={!activeFileId || isRunning}
           >
             <VscPlay size={20} />
           </button>
