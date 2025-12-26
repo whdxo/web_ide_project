@@ -26,29 +26,19 @@ spring:
       port: 6379
 
   datasource:
-    url: jdbc:h2:mem:editus_dev;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:mysql://127.0.0.1:3307/editus_dev?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DB_USER:editus}
+    password: ${DB_PASSWORD:editus1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
-    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-
-  sql:
-    init:
-      mode: always
+        dialect: org.hibernate.dialect.MySQLDialect
 
   devtools:
     restart:
