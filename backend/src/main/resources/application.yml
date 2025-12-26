@@ -20,3 +20,10 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
+# Judge0 API 설정 (코드 실행 엔진)
+judge0:
+  api:
+    url: ${JUDGE0_API_URL:https://judge0-ce.p.rapidapi.com}
+    key: ${JUDGE0_API_KEY}
+    host: ${JUDGE0_API_HOST:judge0-ce.p.rapidapi.com}
+

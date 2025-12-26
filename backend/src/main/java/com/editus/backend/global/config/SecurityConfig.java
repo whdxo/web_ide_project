@@ -58,6 +58,9 @@ public class SecurityConfig {
                         // Todo API 인증 없이 허용
                         .requestMatchers("/api/todos/**").permitAll()
 
+                        // Code Execution API (인증 불필요)
+                        .requestMatchers("/api/code/**").permitAll()
+
                         // 🚧 개발 단계: 전체 허용
                         .anyRequest().permitAll()
 
