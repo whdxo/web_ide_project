@@ -1,62 +1,82 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+// hooks/useWebSocket.ts
+import { useEffect, useRef, useCallback } from "react";
+import { Client } from "@stomp/stompjs";
+import { useChatStore } from "../store/chatStore";
+import { ChatMessage } from "@/shared/features-types/chat.types";
 
-export interface WebSocketHook<T = any> {
-  sendMessage: (msg: string) => void;
-  lastMessage: T | null;
-  readyState: number;
-  error: Event | null;
+interface UseWebSocketProps {
+  projectId: number;
+  username: string;
 }
 
-export const useWebSocket = <T = any>(url: string): WebSocketHook<T> => {
-  const wsRef = useRef<WebSocket | null>(null);
-  const [readyState, setReadyState] = useState<number>(WebSocket.CONNECTING);
-  const [lastMessage, setLastMessage] = useState<T | null>(null);
-  const [error, setError] = useState<Event | null>(null);
-
-  const sendMessage = useCallback((msg: string) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(msg);
-    }
-  }, []);
+export function useWebSocket({ projectId, username }: UseWebSocketProps) {
+  const clientRef = useRef<Client | null>(null);
+  const addMessage = useChatStore((state) => state.addMessage);
+  const roomId = projectId.toString();
 
   useEffect(() => {
-    const ws = new WebSocket(url);
-    wsRef.current = ws;
-    setReadyState(WebSocket.CONNECTING);
-    setError(null);
+    const client = new Client({
+      brokerURL: "ws://localhost:8080/ws",
+      reconnectDelay: 5000,
+      onConnect: () => {
+        // Subscribe to the project's chat room
+        client.subscribe(`/topic/chat/room/${roomId}`, (message) => {
+          const data: ChatMessage = JSON.parse(message.body);
+          addMessage(data);
+        });
 
-    ws.onopen = () => {
-      setReadyState(WebSocket.OPEN);
-      // Optionally: console.log('Connected');
-    };
+        // Send ENTER message
+        client.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: `${username}님이 입장하셨습니다.`,
+            type: "ENTER",
+          }),
+        });
+      },
+      onDisconnect: () => {
+        console.log("WebSocket disconnected");
+      },
+    });
 
-    ws.onmessage = (event: MessageEvent) => {
-      try {
-        setLastMessage(event.data);
-      } catch (e) {
-        // If parsing is needed, handle here
-        setLastMessage(event.data);
-      }
-    };
-
-    ws.onerror = (event: Event) => {
-      setError(event);
-      setReadyState(ws.readyState);
-    };
-
-    ws.onclose = () => {
-      setReadyState(WebSocket.CLOSED);
-    };
+    client.activate();
+    clientRef.current = client;
 
     return () => {
-      ws.close();
+      // Send QUIT message before disconnecting
+      if (clientRef.current?.connected) {
+        clientRef.current.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: `${username}님이 퇴장하셨습니다.`,
+            type: "QUIT",
+          }),
+        });
+      }
+      client.deactivate();
     };
-  }, [url]);
+  }, [projectId, username, roomId, addMessage]);
 
-  return {
-    sendMessage,
-    lastMessage,
-    readyState,
-    error,
-  };
-};
+  const sendMessage = useCallback(
+    (text: string) => {
+      if (clientRef.current?.connected) {
+        clientRef.current.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: text,
+            type: "TALK",
+          }),
+        });
+      }
+    },
+    [roomId, username]
+  );
+
+  return { sendMessage };
+}

@@ -1,5 +1,4 @@
 # 멀티 스테이지 빌드
-# Spring Boot 4.x = Gradle 최소 8.14 필요
 FROM gradle:8.14-jdk17 AS builder
 
 WORKDIR /app
@@ -30,7 +29,7 @@ EXPOSE 8080
 
 # 헬스 체크
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+  CMD curl -f http://localhost:8080/api/auth/health || exit 1
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]

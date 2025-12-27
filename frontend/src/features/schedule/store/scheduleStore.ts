@@ -1,9 +1,33 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface ScheduleState {
-  // 필요한 상태 정의
+  currentMonth: Date;
+  selectedDate: string;
+
+  nextMonth: () => void;
+  prevMonth: () => void;
+  selectDate: (date: string) => void;
 }
 
-export const useScheduleStore = create<ScheduleState>((_set) => ({
-  // 초기 상태
+export const useScheduleStore = create<ScheduleState>((set) => ({
+  currentMonth: new Date(),
+  selectedDate: new Date().toISOString().slice(0, 10),
+
+  nextMonth: () =>
+    set((state) => ({
+      currentMonth: new Date(
+        state.currentMonth.getFullYear(),
+        state.currentMonth.getMonth() + 1
+      ),
+    })),
+
+  prevMonth: () =>
+    set((state) => ({
+      currentMonth: new Date(
+        state.currentMonth.getFullYear(),
+        state.currentMonth.getMonth() - 1
+      ),
+    })),
+
+  selectDate: (date) => set({ selectedDate: date }),
 }));

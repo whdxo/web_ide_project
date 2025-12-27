@@ -1,10 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/shared/components/Button';
 import { Input } from '@/shared/components/Input';
 import { KakaoLoginButton } from './KakaoLoginButton';
+import { useLogin } from '../hooks/useLogin';
 
 export const LoginForm = () => {
+  const { mutate: login, isPending } = useLogin();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+    
+    login({ email, password });
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-brand-black">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-[2rem] shadow-lg">
@@ -13,17 +28,23 @@ export const LoginForm = () => {
           <p className="mt-2 text-gray-500 text-sm">웹 기반 통합 개발 환경에 오신 것을 환영합니다</p>
         </div>
         
-        <form className="mt-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="space-y-4">
             <Input 
               label="이메일"
               type="email" 
               placeholder="name@example.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isPending}
             />
             <Input 
               label="비밀번호"
               type="password" 
               placeholder="비밀번호를 입력하세요" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isPending}
             />
           </div>
 
@@ -39,8 +60,8 @@ export const LoginForm = () => {
             </Link>
           </div>
 
-          <Button fullWidth type="submit">
-            로그인
+          <Button fullWidth type="submit" disabled={isPending}>
+            {isPending ? '로그인 중...' : '로그인'}
           </Button>
           
           <div className="relative my-6">

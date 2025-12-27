@@ -1,28 +1,58 @@
 package com.editus.backend.domain.file.controller;
 
-import org.springframework.web.bind.annotation.*;
 import com.editus.backend.domain.file.dto.CreateFileRequest;
 import com.editus.backend.domain.file.dto.FileResponse;
-import com.editus.backend.domain.file.service.FileService;
+import com.editus.backend.domain.file.service.FileTreeService;
+import com.editus.backend.domain.file.dto.CreateFolderRequest;
+import com.editus.backend.domain.file.dto.FolderResponse;
+import com.editus.backend.domain.file.dto.UpdateFileContentRequest;
+import com.editus.backend.domain.file.dto.TreeResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class FileController {
-    // TODO: 김민규 - 파일 CRUD API 구현
 
-    private final FileService fileService;
-    // 1) 파일 생성
+    private final FileTreeService fileTreeService;
+
     @PostMapping("/projects/{projectId}/files")
     public FileResponse createFile(@PathVariable Long projectId,
-                                   @RequestBody CreateFileRequest req) {
-        return fileService.createFile(projectId, req);
+                                   @Valid @RequestBody CreateFileRequest req) {
+        return fileTreeService.createFile(projectId, req);
     }
 
-    // 2) 파일 조회
+    @PostMapping("/projects/{projectId}/folders")
+    public FolderResponse createFolder(@PathVariable Long projectId,
+                                       @Valid @RequestBody CreateFolderRequest req) {
+        return fileTreeService.createFolder(projectId, req);
+    }
+
+    @PutMapping("/files/{fileId}")
+    public FileResponse updateFileContent(@PathVariable Long fileId,
+                                          @Valid @RequestBody UpdateFileContentRequest req) {
+        return fileTreeService.updateFileContent(fileId, req);
+    }
+
     @GetMapping("/files/{fileId}")
     public FileResponse getFile(@PathVariable Long fileId) {
-        return fileService.getFile(fileId);
+        return fileTreeService.getFile(fileId);
+    }
+
+    @GetMapping("/projects/{projectId}/tree")
+    public TreeResponse getTree(@PathVariable Long projectId) {
+        return fileTreeService.getTree(projectId);
+    }
+
+    @DeleteMapping("/projects/{projectId}/files/{fileId}")
+    public void deleteFile(@PathVariable Long projectId, @PathVariable Long fileId) {
+        fileTreeService.deleteFile(fileId);
+    }
+
+    @DeleteMapping("/projects/{projectId}/folders/{folderId}")
+    public void deleteFolder(@PathVariable Long projectId, @PathVariable Long folderId) {
+        fileTreeService.deleteFolder(folderId);
     }
 }

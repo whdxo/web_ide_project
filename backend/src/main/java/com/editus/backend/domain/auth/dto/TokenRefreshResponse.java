@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TokenRefreshResponse {
-    private String token;
-    private long expiresIn;  // 토큰 만료까지 남은 시간(초)
+    private String accessToken;
+    private String refreshToken;
+    private long expiresIn; // 토큰 만료까지 남은 시간(초)
 }
