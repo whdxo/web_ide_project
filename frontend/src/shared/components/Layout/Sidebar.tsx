@@ -13,7 +13,7 @@ export const Sidebar = ({ userName = '영선', onLogout, onMenuClick }: SidebarP
 
   const menuItems = [
     { label: '새 프로젝트 생성', href: '#' },
-    { label: '초대 코드로 참여', href: '#' },
+    { label: '초대 링크로 참여', href: '#' },
     { label: '일정', href: '#' },
   ];
 

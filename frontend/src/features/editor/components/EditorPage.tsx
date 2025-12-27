@@ -21,6 +21,7 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
+import { useExecuteCode } from "../hooks/useExecuteCode";
 
 export function EditorPage() {
   const location = useLocation();
@@ -32,6 +33,7 @@ export function EditorPage() {
 
   const { openFiles, activeFileId } = useEditorStore();
   const saveFile = useSaveFile();
+  const executeCode = useExecuteCode();
   const { addOutput, addError } = useTerminalStore();
 
   // URL에서 가져온 projectId 또는 임시 값
@@ -79,13 +81,58 @@ export function EditorPage() {
       return;
     }
 
+    if (!activeFile.content.trim()) {
+      addError("실행할 코드가 없습니다");
+      return;
+    }
+
     addOutput(`> Running ${activeFile.name}...`);
 
-    // TODO: 실제 API 호출
-    setTimeout(() => {
-      addOutput("3");
-      addOutput("실행 완료");
-    }, 500);
+    // 실제 API 호출
+    executeCode.mutate(
+      {
+        code: activeFile.content,
+        language: activeFile.language,
+      },
+      {
+        onSuccess: (response) => {
+          // 표준 출력 (stdout)
+          if (response.data.output) {
+            const lines = response.data.output.split('\n');
+            lines.forEach(line => {
+              if (line.trim()) {
+                addOutput(line);
+              }
+            });
+          }
+
+          // 에러 출력 (stderr)
+          if (response.data.error) {
+            const errorLines = response.data.error.split('\n');
+            errorLines.forEach(line => {
+              if (line.trim()) {
+                addError(line);
+              }
+            });
+          }
+
+          // 실행 완료 메시지
+          if (response.data.exitCode === 0) {
+            addOutput("✅ 실행 완료");
+          } else {
+            addError(`❌ 종료 코드: ${response.data.exitCode}`);
+          }
+        },
+        onError: (error: any) => {
+          addError("❌ 코드 실행 실패");
+          if (error.response?.data?.message) {
+            addError(error.response.data.message);
+          } else {
+            addError(error.message || "알 수 없는 오류");
+          }
+        },
+      }
+    );
   };
 
   return (
@@ -180,9 +227,13 @@ export function EditorPage() {
 
           <button
             onClick={handleRun}
-            className="p-2 rounded hover:bg-gray-700 text-green-400 hover:text-green-300"
-            title="코드 실행"
-            disabled={!activeFileId}
+            className={`p-2 rounded hover:bg-gray-700 ${
+              executeCode.isPending
+                ? "text-gray-600"
+                : "text-green-400 hover:text-green-300"
+            }`}
+            title={executeCode.isPending ? "실행 중..." : "코드 실행"}
+            disabled={executeCode.isPending || !activeFileId}
           >
             <VscPlay size={20} />
           </button>

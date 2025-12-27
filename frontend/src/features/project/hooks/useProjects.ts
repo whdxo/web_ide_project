@@ -24,3 +24,14 @@ export const useProjects = () => {
   };
 };
 
+// 프로젝트 삭제 (SettingPanel용)
+export const useDeleteProject = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (projectId: number) => projectApi.deleteProject(projectId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+    },
+  });
+};
