@@ -27,6 +27,14 @@ export interface FileDetail {
   content: string;
 }
 
+// 폴더 상세 정보 (백엔드 FolderResponse와 일치)
+export interface FolderDetail {
+  id: number;
+  projectId: number;
+  name: string;
+  parentId: number | null;
+}
+
 // 폴더 생성 요청
 export interface CreateFolderRequest {
   name: string;
@@ -57,9 +65,9 @@ export interface SaveFileResponseData {
 
 // API 응답 타입들
 export type GetProjectTreeResponse = ProjectTree; // Backend returns TreeResponse directly without ApiResponse wrapper
-export type CreateFolderResponse = ApiResponse<FileDetail>;
-export type CreateFileResponse = ApiResponse<FileDetail>;
-export type GetFileContentResponse = ApiResponse<FileDetail>;
-export type SaveFileResponse = ApiResponse<SaveFileResponseData>;
+export type CreateFolderResponse = FolderDetail; // Backend returns FolderResponse directly without ApiResponse wrapper
+export type CreateFileResponse = FileDetail; // Backend returns FileResponse directly without ApiResponse wrapper
+export type GetFileContentResponse = FileDetail; // Backend returns FileResponse directly without ApiResponse wrapper
+export type SaveFileResponse = FileDetail; // Backend returns FileResponse directly without ApiResponse wrapper
 export type DeleteFileResponse = ApiResponse<null>;
 export type DeleteFolderResponse = ApiResponse<null>;

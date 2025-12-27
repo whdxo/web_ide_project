@@ -25,7 +25,7 @@ export function FileNode({
       openFile({
         id: node.id,
         name: node.name,
-        language: "typescript",
+        language: node.language || "plaintext",
         content: "",
         updatedAt: new Date().toISOString(),
       });
@@ -38,15 +38,32 @@ export function FileNode({
     if (!tempName.trim()) return;
 
     if (isCreating === "file") {
+      // Infer language from file extension
+      const ext = tempName.trim().split('.').pop()?.toLowerCase();
+      const languageMap: { [key: string]: string } = {
+        'js': 'javascript',
+        'ts': 'typescript',
+        'py': 'python',
+        'java': 'java',
+        'cpp': 'cpp',
+        'c': 'c',
+        'html': 'html',
+        'css': 'css',
+        'json': 'json',
+        'md': 'markdown',
+      };
+      const language = ext && languageMap[ext] ? languageMap[ext] : 'plaintext';
+
       createFile.mutate({
         name: tempName.trim(),
+        folderId: node.id,
+        language: language,
         content: "",
-        parent_folder_id: node.id,
       });
     } else if (isCreating === "folder") {
       createFolder.mutate({
         name: tempName.trim(),
-        parent_folder_id: node.id,
+        parentId: node.id,
       });
     }
 
