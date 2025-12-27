@@ -19,15 +19,32 @@ export function FileTree({ projectId }: FileTreeProps) {
     if (!tempName.trim()) return;
 
     if (isCreating === "file") {
+      // Infer language from file extension
+      const ext = tempName.trim().split('.').pop()?.toLowerCase();
+      const languageMap: { [key: string]: string } = {
+        'js': 'javascript',
+        'ts': 'typescript',
+        'py': 'python',
+        'java': 'java',
+        'cpp': 'cpp',
+        'c': 'c',
+        'html': 'html',
+        'css': 'css',
+        'json': 'json',
+        'md': 'markdown',
+      };
+      const language = ext && languageMap[ext] ? languageMap[ext] : 'plaintext';
+
       createFile.mutate({
         name: tempName.trim(),
+        folderId: null, // 루트에 생성
+        language: language,
         content: "",
-        parent_folder_id: null, // 루트에 생성
       });
     } else if (isCreating === "folder") {
       createFolder.mutate({
         name: tempName.trim(),
-        parent_folder_id: null, // 루트에 생성
+        parentId: null, // 루트에 생성
       });
     }
 
@@ -102,12 +119,12 @@ export function FileTree({ projectId }: FileTreeProps) {
         )}
 
         {/* 파일 목록 */}
-        {!data || !data.rootFolders || data.rootFolders.length === 0 ? (
+        {!data || !data.nodes || data.nodes.length === 0 ? (
           <div className="p-4 text-center text-gray-500 text-xs">
             {isCreating ? null : "파일이 없습니다. 새 파일이나 폴더를 생성하세요."}
           </div>
         ) : (
-          data.rootFolders.map((node) => (
+          data.nodes.map((node) => (
             <FileNode key={node.id} node={node} projectId={projectId} />
           ))
         )}

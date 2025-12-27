@@ -58,6 +58,9 @@ public class SecurityConfig {
                         // Todo API 인증 없이 허용
                         .requestMatchers("/api/todos/**").permitAll()
 
+                        // Code Execution API (인증 불필요)
+                        .requestMatchers("/api/code/**").permitAll()
+
                         // 🚧 개발 단계: 전체 허용
                         .anyRequest().permitAll()
 
@@ -83,6 +86,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:3001");
         configuration.addAllowedOrigin("http://localhost:5173"); // Vite 개발 서버
+        configuration.addAllowedOrigin("http://localhost:5174"); // Vite 개발 서버 (대체 포트)
 
         configuration.addAllowedOrigin("https://goormeditus.com"); // 운영 도메인
 
