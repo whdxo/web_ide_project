@@ -18,6 +18,7 @@ interface TodoState {
 
   fetchTodos: (dueDate?: string) => Promise<void>;
   addTodo: (content: string, dueDate: string, priority: number, projectId?: number) => Promise<void>;
+  updateTodo: (id: number, updates: { title?: string; priority?: number; dueDate?: string; projectId?: number }) => Promise<void>;
   removeTodo: (id: number) => Promise<void>;
   toggleTodo: (id: number) => Promise<void>;
 }
@@ -62,6 +63,27 @@ export const useTodoStore = create<TodoState>((set) => ({
       }));
     } catch (error) {
       set({ error: "Failed to create todo", loading: false });
+      console.error(error);
+    }
+  },
+
+  updateTodo: async (id: number, updates: { title?: string; priority?: number; dueDate?: string; projectId?: number }) => {
+    try {
+      const request = {
+        content: updates.title,
+        priority: updates.priority,
+        dueDate: updates.dueDate,
+        projectId: updates.projectId,
+      };
+
+      const updated = await todoApi.updateTodo(id, request);
+      const updatedTodo = convertToFrontendTodo(updated);
+
+      set((state) => ({
+        todos: state.todos.map((t) => (t.id === id ? updatedTodo : t)),
+      }));
+    } catch (error) {
+      set({ error: "Failed to update todo" });
       console.error(error);
     }
   },

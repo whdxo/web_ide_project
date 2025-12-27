@@ -46,13 +46,13 @@ public class FileController {
         return fileTreeService.getTree(projectId);
     }
 
-    @DeleteMapping("/files/{fileId}")
-    public void deleteFile(@PathVariable Long fileId) {
+    @DeleteMapping("/projects/{projectId}/files/{fileId}")
+    public void deleteFile(@PathVariable Long projectId, @PathVariable Long fileId) {
         fileTreeService.deleteFile(fileId);
     }
 
-    @DeleteMapping("/folders/{folderId}")
-    public void deleteFolder(@PathVariable Long folderId) {
+    @DeleteMapping("/projects/{projectId}/folders/{folderId}")
+    public void deleteFolder(@PathVariable Long projectId, @PathVariable Long folderId) {
         fileTreeService.deleteFolder(folderId);
     }
 }
