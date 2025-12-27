@@ -25,7 +25,8 @@ export function MemberItem({
     if (!confirm("정말 이 멤버를 삭제하시겠습니까?")) return;
 
     setIsDeleting(true);
-    removeMember.mutate(member.member_id, {
+    setIsDeleting(true);
+    removeMember.mutate(member.memberId, {
       onSettled: () => setIsDeleting(false),
     });
   };
@@ -49,14 +50,14 @@ export function MemberItem({
       <div className="flex items-center gap-3">
         {/* 아바타 */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br bg-[#5363EE] flex items-center justify-center text-white font-semibold text-sm">
-          {member.user_id.toString().slice(0, 2)}
+          {member.userId.toString().slice(0, 2)}
         </div>
 
         <div>
           {/* 사용자 이름 */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-200">
-              User {member.user_id}
+              {member.name || member.email || `User ${member.userId}`}
               {isCurrentUser && (
                 <span className="text-xs text-gray-500 ml-1">(나)</span>
               )}
@@ -68,9 +69,8 @@ export function MemberItem({
 
           {/* 역할 배지 */}
           <span
-            className={`text-xs px-2 py-0.5 rounded ${
-              roleColor[member.role]
-            }`}
+            className={`text-xs px-2 py-0.5 rounded ${roleColor[member.role]
+              }`}
           >
             {roleLabel[member.role]}
           </span>

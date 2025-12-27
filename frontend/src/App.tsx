@@ -6,6 +6,8 @@ import { OAuthCallback } from './features/auth/components/OAuthCallback';
 import { ProjectSelectionPage } from './features/project/components/ProjectSelectionPage';
 import { EditorPage } from './features/editor/components/EditorPage';
 
+import { InviteJoinPage } from './features/project/components/InviteJoinPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +19,7 @@ function App() {
         <Route path="/oauth/callback" element={<OAuthCallback />} />
         <Route path="/projects" element={<ProjectSelectionPage />} />
         <Route path="/projects/:projectId/editor" element={<EditorPage />} />
+        <Route path="/join" element={<InviteJoinPage />} />
       </Routes>
     </BrowserRouter>
   );

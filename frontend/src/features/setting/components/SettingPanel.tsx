@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { useMembers, useRemoveMember } from "@/features/member/hooks/useMembers";
+import { useMembers, useLeaveProject } from "@/features/member/hooks/useMembers";
 import { useDeleteProject } from "@/features/project/hooks/useProjects";
 import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
+import { DeleteProjectModal } from "@/features/project/components/DeleteProjectModal";
 import { authApi } from "@/shared/api/authApi";
 
 interface SettingsPanelProps {
@@ -17,6 +18,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   const authStore = useAuthStore();
   const user = authStore.user;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const params = useParams<{ projectId: string }>();
 
@@ -25,11 +27,11 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
 
   // 멤버 정보 가져오기
   const { data: members } = useMembers(projectId);
-  const removeMember = useRemoveMember(projectId);
-  const deleteProject = useDeleteProject();
+  const leaveProjectMutation = useLeaveProject();
+  const deleteProjectMutation = useDeleteProject();
 
   // 내 멤버 정보
-  const myMember = members?.find(m => m.user_id === currentUserId);
+  const myMember = members?.find(m => m.userId === currentUserId);
 
   // 팀장 여부 확인 (OWNER 역할)
   const isOwner = myMember?.role === "OWNER";
@@ -44,7 +46,9 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
     }
   };
 
-  const handleLeaveProject = () => {
+  const handleLeaveProject = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+
     if (!myMember) {
       alert("멤버 정보를 찾을 수 없습니다");
       return;
@@ -59,48 +63,25 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       return;
     }
 
-    removeMember.mutate(myMember.member_id, {
-      onSuccess: () => {
-        alert("프로젝트에서 나갔습니다");
-        navigate("/projects");
-      },
-      onError: (error) => {
-        console.error("프로젝트 나가기 실패:", error);
-        alert("프로젝트 나가기에 실패했습니다");
-      }
+    leaveProjectMutation.mutate({
+      projectId,
+      memberId: myMember.memberId
     });
   };
 
-  const handleDeleteProject = () => {
+  const handleDeleteProject = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 이벤트 버블링 방지
+
     if (!projectId) {
       alert("프로젝트 정보를 찾을 수 없습니다");
       return;
     }
 
-    const confirmed = confirm(
-      "⚠️ 프로젝트를 삭제하시겠습니까?\n\n" +
-      "프로젝트의 모든 데이터(파일, 코드, 채팅 등)가 영구적으로 삭제됩니다.\n" +
-      "이 작업은 되돌릴 수 없습니다."
-    );
+    setIsDeleteModalOpen(true);
+  };
 
-    if (!confirmed) return;
-
-    const doubleConfirmed = confirm(
-      "정말로 삭제하시겠습니까?\n프로젝트명을 확인해주세요."
-    );
-
-    if (!doubleConfirmed) return;
-
-    deleteProject.mutate(projectId, {
-      onSuccess: () => {
-        alert("프로젝트가 삭제되었습니다");
-        navigate("/projects");
-      },
-      onError: (error) => {
-        console.error("프로젝트 삭제 실패:", error);
-        alert("프로젝트 삭제에 실패했습니다");
-      }
-    });
+  const onConfirmDelete = () => {
+    deleteProjectMutation.mutate(projectId);
   };
 
   const handleLogout = async () => {
@@ -127,7 +108,12 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       <div className="flex flex-1 flex-col items-center px-4 text-center">
         {/* 상단 영역 (로고 + 인사) */}
         <div className="mt-14 flex flex-col items-center">
-          <h1 className="mb-6 text-3xl font-bold">EditUs</h1>
+          <h1
+            className="mb-6 text-3xl font-bold cursor-pointer hover:text-blue-400 transition-colors"
+            onClick={() => navigate('/projects')}
+          >
+            EditUs
+          </h1>
 
           <p className="text-sm leading-relaxed">
             <span className="font-semibold">{user?.name || "사용자"}님,</span>
@@ -151,7 +137,12 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
           {/* 프로젝트 삭제 - 팀장만 */}
           {isOwner && (
             <button
-              onClick={handleDeleteProject}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.nativeEvent.stopImmediatePropagation();
+                handleDeleteProject(e);
+              }}
               className="hover:text-red-400 text-red-500"
             >
               프로젝트 삭제
@@ -189,6 +180,14 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
           onClose={() => setIsInviteModalOpen(false)}
         />
       )}
+
+      {/* 삭제 모달 */}
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={onConfirmDelete}
+        isLoading={deleteProjectMutation.isPending}
+      />
     </div>
   );
 }

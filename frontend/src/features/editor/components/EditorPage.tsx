@@ -1,6 +1,6 @@
 import { FileTree } from "../../fileTree/components/FileTree";
 import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { EditorTabs } from "./EditorTabs";
 import {
@@ -26,6 +26,7 @@ import { codeApi } from "@/shared/api/codeApi";
 
 
 export function EditorPage() {
+  const navigate = useNavigate();
   const location = useLocation();
   const { projectId: projectIdParam } = useParams<{ projectId: string }>();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
@@ -36,7 +37,6 @@ export function EditorPage() {
 
   const { openFiles, activeFileId } = useEditorStore();
   const saveFile = useSaveFile();
-  const executeCode = useExecuteCode();
   const { addOutput, addError } = useTerminalStore();
 
   // URL에서 가져온 projectId 또는 임시 값
@@ -164,16 +164,20 @@ export function EditorPage() {
     <div className="h-screen bg-[#0f111a] text-gray-100 overflow-hidden flex flex-col">
       {/* header */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-[#181818] border-b border-gray-800 flex items-center px-4 z-50">
-        <h1 className="text-xl font-semibold tracking-wide">EditUs</h1>
+        <h1
+          className="text-xl font-semibold tracking-wide cursor-pointer hover:text-blue-400 transition-colors"
+          onClick={() => navigate('/projects')}
+        >
+          EditUs
+        </h1>
 
         <div className="ml-auto flex items-center gap-3">
           <button
             onClick={() => togglePanel("members")}
-            className={`p-2 rounded-md ${
-              rightPanel === "members"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "members"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
             title="멤버 목록"
           >
             <IoPeople size={20} />
@@ -181,44 +185,40 @@ export function EditorPage() {
 
           <button
             onClick={() => togglePanel("chat")}
-            className={`p-2 rounded-md ${
-              rightPanel === "chat"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "chat"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoChatbubbleEllipsesOutline size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("todo")}
-            className={`p-2 rounded-md ${
-              rightPanel === "todo"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "todo"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoCalendarOutline size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("ai")}
-            className={`p-2 rounded-md ${
-              rightPanel === "ai"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "ai"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <RiRobot2Fill size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("settings")}
-            className={`p-2 rounded-md ${
-              rightPanel === "settings"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "settings"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoSettingsOutline size={20} />
           </button>
@@ -231,9 +231,8 @@ export function EditorPage() {
         <div className="w-12 bg-[#181818] border-r border-gray-800 flex flex-col items-center py-2 gap-3">
           <button
             onClick={() => setIsFileTreeOpen((prev) => !prev)}
-            className={`p-2 rounded hover:bg-gray-700 ${
-              isFileTreeOpen ? "bg-gray-700 text-white" : "text-gray-400"
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${isFileTreeOpen ? "bg-gray-700 text-white" : "text-gray-400"
+              }`}
             title="파일 트리"
           >
             <VscFiles size={20} />
@@ -241,9 +240,8 @@ export function EditorPage() {
 
           <button
             onClick={handleSave}
-            className={`p-2 rounded hover:bg-gray-700 ${
-              saveFile.isPending ? "text-gray-600" : "text-gray-400"
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${saveFile.isPending ? "text-gray-600" : "text-gray-400"
+              }`}
             title={saveFile.isPending ? "저장 중..." : "저장"}
             disabled={saveFile.isPending || !activeFileId}
           >
@@ -252,12 +250,10 @@ export function EditorPage() {
 
           <button
             onClick={handleRun}
-            className={`p-2 rounded hover:bg-gray-700 ${
-
-              isRunning
-                ? 'text-gray-600 cursor-not-allowed'
-                : 'text-green-400 hover:text-green-300'
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${isRunning
+              ? 'text-gray-600 cursor-not-allowed'
+              : 'text-green-400 hover:text-green-300'
+              }`}
             title={isRunning ? '실행 중...' : '코드 실행'}
             disabled={!activeFileId || isRunning}
 
@@ -288,7 +284,7 @@ export function EditorPage() {
         {rightPanel && (
           <aside className="w-80 bg-[#1f1f1f] border-l border-gray-800 flex flex-col">
             <div className="flex-1 overflow-y-auto">
-              {rightPanel === "chat" && <ChatPanel />}
+              {rightPanel === "chat" && <ChatPanel projectId={projectId} />}
               {rightPanel === "todo" && (
                 <>
                   <SprintView />
@@ -300,8 +296,8 @@ export function EditorPage() {
                 <MemberPanel projectId={projectId} currentUserId={currentUserId} />
               )}
               {rightPanel === "settings" && (
-                <SettingsPanel 
-                  projectId={projectId} 
+                <SettingsPanel
+                  projectId={projectId}
                   onOpenPanel={(panel) => setRightPanel(panel)}
                 />
               )}

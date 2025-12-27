@@ -12,5 +12,6 @@ public class ProjectMemberResponse {
     private String name;
     private String email;
     private LocalDateTime joinedAt;
-    private boolean isOwner;
+    // private boolean isOwner; // Frontend uses role now
+    private String role; // "OWNER", "EDITOR", "USER"
 }

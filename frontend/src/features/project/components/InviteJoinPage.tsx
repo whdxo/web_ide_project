@@ -25,6 +25,14 @@ export function InviteJoinPage() {
             return;
         }
 
+        // 로그인 여부 체크
+        if (!isAuthenticated) {
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            // replace: true를 사용하여 뒤로가기 시 무한 루프 방지
+            navigate(`/login?returnUrl=${returnUrl}`, { replace: true });
+            return;
+        }
+
         const fetchInfo = async () => {
             try {
                 const response = await projectApi.getInvitationInfo(code);
@@ -41,17 +49,10 @@ export function InviteJoinPage() {
         };
 
         fetchInfo();
-    }, [code]);
+    }, [code, isAuthenticated, navigate]);
 
     const handleJoin = () => {
         if (!code) return;
-
-        // 로그인 여부 확인
-        if (!isAuthenticated) {
-            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-            navigate(`/login?returnUrl=${returnUrl}`);
-            return;
-        }
 
         joinProject.mutate(
             { inviteCode: code },
@@ -59,7 +60,10 @@ export function InviteJoinPage() {
                 onSuccess: (response) => {
                     alert('프로젝트에 성공적으로 참여했습니다!');
                     // 프로젝트 데이터에서 ID를 추출하여 에디터로 직접 이동
-                    const projectId = response.data?.project?.project_id;
+                    // 백엔드 필드명(camelCase vs snake_case) 불일치 가능성 대비
+                    const project = response.data?.project as any;
+                    const projectId = project?.project_id || project?.projectId;
+
                     if (projectId) {
                         navigate(`/projects/${projectId}/editor`);
                     } else {
@@ -67,7 +71,18 @@ export function InviteJoinPage() {
                     }
                 },
                 onError: (err: any) => {
-                    alert(err.response?.data?.message || '참여 중 오류가 발생했습니다.');
+                    const message = err.response?.data?.message || '참여 중 오류가 발생했습니다.';
+
+                    // 이미 멤버인 경우 바로 에디터로 이동하는 편의성 제공
+                    if (message.includes('이미 프로젝트의 멤버입니다')) {
+                        alert('이미 참여 중인 프로젝트입니다. 에디터로 이동합니다.');
+                        // info 객체에 프로젝트 ID가 있다면 사용 (InvitationInfoResponse에는 ID가 없음)
+                        // 따라서 프로젝트 목록으로 이동하거나, info 정보를 확장해야 함.
+                        // 현재는 안전하게 목록으로 이동
+                        navigate('/projects');
+                    } else {
+                        alert(message);
+                    }
                 },
             }
         );

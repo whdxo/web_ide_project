@@ -53,9 +53,15 @@ cors:
 
 openai:
   api:
-    key: ${OPENAI_API_KEY}
+    key: ${OPENAI_API_KEY:dummy-local-dev-key}
     url: https://api.openai.com/v1/chat/completions
     model: gpt-4o-mini
+
+judge0:
+  api:
+    url: https://judge0-ce.p.rapidapi.com
+    key: ${JUDGE0_API_KEY:dummy-local-dev-key}
+    host: judge0-ce.p.rapidapi.com
 
 logging:
   level:

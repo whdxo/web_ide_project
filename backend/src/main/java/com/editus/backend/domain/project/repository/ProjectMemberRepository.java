@@ -18,6 +18,8 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
 
     void deleteByProjectAndUser(Project project, User user);
 
+    void deleteByProject(Project project);
+
     @Query("SELECT pm FROM ProjectMember pm JOIN FETCH pm.user WHERE pm.project.projectId = :projectId")
     List<ProjectMember> findByProjectIdWithUser(@Param("projectId") Long projectId);
 }

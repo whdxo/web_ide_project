@@ -18,7 +18,7 @@ public class ProjectMember {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
+    @Column(name = "id")
     private Long memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,6 +31,11 @@ public class ProjectMember {
 
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @PrePersist
     protected void onCreate() {
