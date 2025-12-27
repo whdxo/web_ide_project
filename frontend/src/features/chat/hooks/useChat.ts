@@ -24,6 +24,9 @@ export function useChat(projectId: number) {
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
+      connectHeaders: {
+        Authorization: `Bearer ${useAuthStore.getState().token}`,
+      },
       onConnect: () => {
         console.log('STOMP Connected');
         // Subscribe to room topic
