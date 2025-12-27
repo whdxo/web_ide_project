@@ -13,13 +13,13 @@ public class FileContentController {
 
     private final FileContentService fileContentService;
 
-    @PostMapping("/{fileId}/upload-url")
-    public UploadUrlResponse uploadUrl(@PathVariable Long fileId) {
-        return fileContentService.uploadUrl(fileId);
+    @PostMapping("/api/files/{fileId}/upload-url")
+    public UploadUrlResponse createUploadUrl(@PathVariable Long fileId) {
+        return fileContentService.createUploadUrl(fileId);
     }
 
-    @GetMapping("/{fileId}/content-url")
-    public DownloadUrlResponse contentUrl(@PathVariable Long fileId) {
-        return fileContentService.downloadUrl(fileId);
+    @GetMapping("/api/files/{fileId}/content-url")
+    public DownloadUrlResponse createDownloadUrl(@PathVariable Long fileId) {
+        return fileContentService.createDownloadUrl(fileId);
     }
 }

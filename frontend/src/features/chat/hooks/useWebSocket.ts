@@ -1,22 +1,43 @@
 // hooks/useWebSocket.ts
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Client } from "@stomp/stompjs";
 import { useChatStore } from "../store/chatStore";
 import { ChatMessage } from "@/shared/features-types/chat.types";
 
-export function useWebSocket() {
+interface UseWebSocketProps {
+  projectId: number;
+  username: string;
+}
+
+export function useWebSocket({ projectId, username }: UseWebSocketProps) {
   const clientRef = useRef<Client | null>(null);
   const addMessage = useChatStore((state) => state.addMessage);
+  const roomId = projectId.toString();
 
   useEffect(() => {
     const client = new Client({
-      brokerURL: "ws://localhost:8080/ws",
+      brokerURL: import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws-chat",
       reconnectDelay: 5000,
       onConnect: () => {
-        client.subscribe("/topic/project.1", (message) => {
+        // Subscribe to the project's chat room
+        client.subscribe(`/topic/chat/room/${roomId}`, (message) => {
           const data: ChatMessage = JSON.parse(message.body);
           addMessage(data);
         });
+
+        // Send ENTER message
+        client.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: `${username}님이 입장하셨습니다.`,
+            type: "ENTER",
+          }),
+        });
+      },
+      onDisconnect: () => {
+        console.log("WebSocket disconnected");
       },
     });
 
@@ -24,20 +45,38 @@ export function useWebSocket() {
     clientRef.current = client;
 
     return () => {
+      // Send QUIT message before disconnecting
+      if (clientRef.current?.connected) {
+        clientRef.current.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: `${username}님이 퇴장하셨습니다.`,
+            type: "QUIT",
+          }),
+        });
+      }
       client.deactivate();
     };
-  }, [addMessage]);
+  }, [projectId, username, roomId, addMessage]);
 
-  const sendMessage = (text: string) => {
-    clientRef.current?.publish({
-      destination: "/app/chat.send",
-      body: JSON.stringify({
-        projectId: 1,
-        senderId: 3,
-        message: text,
-      }),
-    });
-  };
+  const sendMessage = useCallback(
+    (text: string) => {
+      if (clientRef.current?.connected) {
+        clientRef.current.publish({
+          destination: "/app/chat/message",
+          body: JSON.stringify({
+            roomId,
+            sender: username,
+            message: text,
+            type: "TALK",
+          }),
+        });
+      }
+    },
+    [roomId, username]
+  );
 
   return { sendMessage };
 }

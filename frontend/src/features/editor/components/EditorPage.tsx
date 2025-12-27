@@ -21,7 +21,9 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
+
 import { codeApi } from "@/shared/api/codeApi";
+
 
 export function EditorPage() {
   const location = useLocation();
@@ -34,6 +36,7 @@ export function EditorPage() {
 
   const { openFiles, activeFileId } = useEditorStore();
   const saveFile = useSaveFile();
+  const executeCode = useExecuteCode();
   const { addOutput, addError } = useTerminalStore();
 
   // URL에서 가져온 projectId 또는 임시 값
@@ -101,8 +104,10 @@ export function EditorPage() {
       return;
     }
 
+
     // 로딩 상태 시작
     setIsRunning(true);
+
     addOutput(`> Running ${activeFile.name}...`);
     addOutput('');
 
@@ -124,6 +129,7 @@ export function EditorPage() {
       }
 
       const { output, error, status, time } = response.data;
+
 
       // 실행 결과 출력
       if (output) {
@@ -151,6 +157,7 @@ export function EditorPage() {
       // 로딩 상태 종료
       setIsRunning(false);
     }
+
   };
 
   return (
@@ -246,12 +253,14 @@ export function EditorPage() {
           <button
             onClick={handleRun}
             className={`p-2 rounded hover:bg-gray-700 ${
+
               isRunning
                 ? 'text-gray-600 cursor-not-allowed'
                 : 'text-green-400 hover:text-green-300'
             }`}
             title={isRunning ? '실행 중...' : '코드 실행'}
             disabled={!activeFileId || isRunning}
+
           >
             <VscPlay size={20} />
           </button>

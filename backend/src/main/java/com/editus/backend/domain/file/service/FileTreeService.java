@@ -30,10 +30,12 @@ public class FileTreeService {
     @Transactional
     public FileResponse createFile(Long projectId, CreateFileRequest req) {
 
+
         // 부모 폴더 존재 확인 (folderId가 null이면 루트에 생성)
         if (req.getFolderId() != null) {
             Folder folder = folderRepository.findById(req.getFolderId())
                     .orElseThrow(() -> new IllegalArgumentException("폴더가 존재하지 않습니다."));
+
 
             // projectId 일치 검증
             if (!Objects.equals(folder.getProjectId(), projectId)) {
@@ -41,19 +43,17 @@ public class FileTreeService {
             }
         }
 
+        // 같은 폴더 내 같은 이름 파일이 이미 있으면 "덮어쓰기" 정책:
+        // -> DB content 덮어쓰는 게 아니라, 기존 파일 레코드를 그대로 재사용(= 같은 fileId 유지)
         Optional<IdeFile> existingOpt =
-                ideFileRepository.findByProjectIdAndFolderIdAndName(
-                        projectId,
-                        req.getFolderId(),
-                        req.getName()
-                );
+                ideFileRepository.findByProjectIdAndFolderIdAndName(projectId, req.getFolderId(), req.getName());
 
         if (existingOpt.isPresent()) {
             IdeFile existing = existingOpt.get();
-            // 내용 덮어쓰기
-            existing.updateContent(req.getContent() == null ? "" : req.getContent());
-            // ✅ 파일명 기반 언어 자동 감지/갱신
-            existing.updateLanguage(LanguageDetector.detect(req.getName()));
+
+            existing.updateLanguage(LanguageDetector.detect(existing.getName()));
+
+            // content는 건드리지 않는다 (S3-only)
             // save() 필요 없음 (Dirty Checking)
             return FileResponse.from(existing);
         }
@@ -65,7 +65,8 @@ public class FileTreeService {
                 .folderId(req.getFolderId())
                 .name(req.getName())
                 .language(language)
-                .content(req.getContent() == null ? "" : req.getContent())
+                // content 세팅 금지 (S3-only)
+                // contentKey도 업로드 전이라 null
                 .build();
 
         IdeFile saved = ideFileRepository.save(file);
@@ -83,16 +84,13 @@ public class FileTreeService {
     }
 
      // 파일 내용 저장(수정)
-    @Transactional
-    public FileResponse updateFileContent(Long fileId, UpdateFileContentRequest req) {
-        IdeFile file = ideFileRepository.findById(fileId)
-                .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다."));
-
-        // JPA 변경감지(Dirty Checking)
-        file.updateContent(req.getContent());
-
-        return FileResponse.from(file);
-    }
+     @Transactional
+     public FileResponse updateFileContent(Long fileId, UpdateFileContentRequest req) {
+         throw new UnsupportedOperationException(
+                 "파일 내용 저장은 S3 업로드 방식으로 처리합니다. " +
+                         "/api/files/{id}/upload-url 를 사용하세요."
+         );
+     }
 
 
     // 파일 삭제

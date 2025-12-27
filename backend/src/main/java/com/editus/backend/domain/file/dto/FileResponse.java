@@ -9,10 +9,11 @@ import lombok.Getter;
 public class FileResponse {
 
     private Long id;
+    private Long projectId;
     private Long folderId;
     private String name;
     private String language;
-    private String content;
+    private String contentKey;
 
     public static FileResponse from(IdeFile file) {
         return FileResponse.builder()
@@ -20,7 +21,6 @@ public class FileResponse {
                 .folderId(file.getFolderId())
                 .name(file.getName())
                 .language(file.getLanguage())
-                .content(file.getContent())
                 .build();
     }
 }
