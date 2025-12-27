@@ -25,6 +25,7 @@ export function FileNode({
       openFile({
         id: node.id,
         name: node.name,
+        path: node.name, // AI 리뷰를 위한 경로 (현재는 파일명 사용)
         language: node.language || "plaintext",
         content: "",
         updatedAt: new Date().toISOString(),
