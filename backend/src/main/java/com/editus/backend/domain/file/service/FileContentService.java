@@ -24,7 +24,7 @@ public class FileContentService {
 
         String contentKey = "projects/" + file.getProjectId() + "/files/" + file.getId();
 
-        String uploadUrl = s3PresignService.generatePutUrl(contentKey);
+        String uploadUrl = s3PresignService.presignPut(contentKey);
 
         file.setContentKey(contentKey); // DB에는 contentKey만 저장
 
@@ -43,7 +43,7 @@ public class FileContentService {
             throw new IllegalStateException("아직 업로드된 contentKey가 없습니다.");
         }
 
-        String downloadUrl = s3PresignService.generateGetUrl(file.getContentKey());
+        String downloadUrl = s3PresignService.presignGet(file.getContentKey());
 
         return DownloadUrlResponse.builder()
                 .downloadUrl(downloadUrl)
