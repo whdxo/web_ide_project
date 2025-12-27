@@ -59,11 +59,14 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(newProject));
     }
 
+    // NOTE: 이 엔드포인트는 FileController의 getTree와 중복되어 주석 처리됨
+    // FileController의 /api/projects/{projectId}/tree를 사용할 것
+    /*
     @GetMapping("/{projectId}/tree")
     public ResponseEntity<ApiResponse<ProjectTreeResponseDto>> getProjectTree(@PathVariable Long projectId) {
         List<FileNodeDto> children = new ArrayList<>();
         children.add(new FileNodeDto(101L, "main.ts", "FILE", null));
-        
+
         List<FileNodeDto> rootFolders = new ArrayList<>();
         rootFolders.add(new FileNodeDto(100L, "src", "FOLDER", children));
         rootFolders.add(new FileNodeDto(102L, "README.md", "FILE", null));
@@ -72,6 +75,7 @@ public class ProjectController {
 
         return ResponseEntity.ok(ApiResponse.success(treeData));
     }
+    */
 
     @DeleteMapping("/{projectId}")
     public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {

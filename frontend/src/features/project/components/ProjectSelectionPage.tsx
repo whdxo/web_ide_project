@@ -21,7 +21,7 @@ export const ProjectSelectionPage = () => {
       setIsTodoOpen((prev) => !prev);
     } else if (label === '새 프로젝트 생성') {
       setIsCreateModalOpen(true);
-    } else if (label === '초대 코드로 참여') {
+    } else if (label === '초대 링크로 참여') {
       setIsJoinModalOpen(true);
     }
   };
