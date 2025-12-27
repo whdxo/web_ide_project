@@ -221,7 +221,12 @@ export function EditorPage() {
               {rightPanel === "members" && (
                 <MemberPanel projectId={projectId} currentUserId={currentUserId} />
               )}
-              {rightPanel === "settings" && <SettingsPanel />}
+              {rightPanel === "settings" && (
+                <SettingsPanel 
+                  projectId={projectId} 
+                  onOpenPanel={(panel) => setRightPanel(panel)}
+                />
+              )}
             </div>
           </aside>
         )}

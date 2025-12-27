@@ -1,27 +1,26 @@
 package com.editus.backend.domain.auth.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Getter
-@Builder
-@AllArgsConstructor
+import java.time.LocalDateTime;
+
+@Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class LoginResponse {
     private String accessToken;
     private String refreshToken;
-    private UserDto user;
+    private UserInfo user;
 
-    @Getter
-    @Builder
-    @AllArgsConstructor
+    @Data
     @NoArgsConstructor
-    public static class UserDto {
+    @AllArgsConstructor
+    public static class UserInfo {
         private Long userId;
         private String name;
         private String email;
-        private String createdAt;
+        private LocalDateTime createdAt;
     }
 }

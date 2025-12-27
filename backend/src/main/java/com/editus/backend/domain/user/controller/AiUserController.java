@@ -1,6 +1,7 @@
 package com.editus.backend.domain.user.controller;
 
 import com.editus.backend.global.common.dto.ApiResponse;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -8,9 +9,10 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("ai-mock")
 @RestController
-@RequestMapping("/api/users")
-public class UserController {
+@RequestMapping("/api/ai/users")
+public class AiUserController {
 
     @PostMapping("/join")
     public ResponseEntity<ApiResponse<Map<String, Object>>> join(@RequestBody Map<String, Object> request) {
