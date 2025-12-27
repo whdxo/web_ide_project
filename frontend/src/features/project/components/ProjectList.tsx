@@ -31,7 +31,7 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
         <h1 className="text-2xl font-bold text-white">내 프로젝트</h1>
         <div className="space-x-4">
           <Button variant="outline" onClick={onOpenJoinModal}>
-            초대 코드로 참여
+            초대 링크로 참여
           </Button>
           <Button onClick={onOpenCreateModal}>
             새 프로젝트 생성
@@ -55,10 +55,6 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
                 {project.name}
               </h3>
               
-              <p className="text-blue-100 mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-center px-4 absolute top-1/2 pt-8">
-                {project.project_type === 'PERSONAL' ? '개인 프로젝트' : '팀 프로젝트'}
-              </p>
-
               {user?.userId === project.owner_id && (
                 <button
                   onClick={(e) => handleDelete(e, project.project_id)}
