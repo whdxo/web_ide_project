@@ -4,6 +4,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMembers, useRemoveMember } from "@/features/member/hooks/useMembers";
 import { useDeleteProject } from "@/features/project/hooks/useProjects";
 import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
+import { authApi } from "@/shared/api/authApi";
 
 interface SettingsPanelProps {
   projectId?: number;
@@ -16,12 +17,12 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   const authStore = useAuthStore();
   const user = authStore.user;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  
+
   const params = useParams<{ projectId: string }>();
-  
+
   const projectId = propProjectId || Number(params.projectId) || 0;
-  const currentUserId = propCurrentUserId || user?.userId || user?.id || 0;
-  
+  const currentUserId = propCurrentUserId || user?.userId || 0;
+
   // 멤버 정보 가져오기
   const { data: members } = useMembers(projectId);
   const removeMember = useRemoveMember(projectId);
@@ -29,7 +30,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
 
   // 내 멤버 정보
   const myMember = members?.find(m => m.user_id === currentUserId);
-  
+
   // 팀장 여부 확인 (OWNER 역할)
   const isOwner = myMember?.role === "OWNER";
 
@@ -102,6 +103,19 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
     });
   };
 
+  const handleLogout = async () => {
+    if (confirm("로그아웃 하시겠습니까?")) {
+      try {
+        await authApi.logout();
+      } catch (error) {
+        console.error("Logout failed:", error);
+      } finally {
+        authStore.logout();
+        navigate("/login");
+      }
+    }
+  };
+
   return (
     <div className="flex h-full flex-col bg-[#1f1f1f] text-gray-100">
       {/* 헤더 */}
@@ -126,32 +140,32 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
         <div className="mt-14 flex flex-col gap-4 text-xs text-gray-300">
           {/* 프로젝트 나가기 - 팀장 제외 */}
           {!isOwner && (
-            <button 
+            <button
               onClick={handleLeaveProject}
               className="hover:text-white"
             >
               프로젝트 나가기
             </button>
           )}
-          
+
           {/* 프로젝트 삭제 - 팀장만 */}
           {isOwner && (
-            <button 
+            <button
               onClick={handleDeleteProject}
               className="hover:text-red-400 text-red-500"
             >
               프로젝트 삭제
             </button>
           )}
-          
-          <button 
+
+          <button
             onClick={handleInvite}
             className="hover:text-white"
           >
             프로젝트 초대하기
           </button>
-          
-          <button 
+
+          <button
             onClick={handleSchedule}
             className="hover:text-white"
           >
@@ -161,7 +175,10 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       </div>
 
       {/* 로그아웃 */}
-      <button className="py-4 text-xs text-gray-400 hover:text-white">
+      <button
+        onClick={handleLogout}
+        className="py-4 text-xs text-gray-400 hover:text-white"
+      >
         로그아웃
       </button>
 

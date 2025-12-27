@@ -9,7 +9,8 @@ export const OAuthCallback = () => {
   const setAuth = useAuthStore((state) => state.setAuth);
 
   useEffect(() => {
-    const token = searchParams.get('token');
+    const accessToken = searchParams.get('accessToken');
+    const refreshToken = searchParams.get('refreshToken');
     const error = searchParams.get('error');
     const message = searchParams.get('message');
 
@@ -19,20 +20,18 @@ export const OAuthCallback = () => {
       return;
     }
 
-    if (token) {
+    if (accessToken && refreshToken) {
       const handleLogin = async () => {
         try {
           // 토큰 임시 저장 (API 호출을 위해)
-          localStorage.setItem('token', token);
-          
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
+
           // 사용자 정보 조회
           const response = await authApi.me();
-          
+
           if (response.data) {
-            // 스토어 업데이트 (RefreshToken은 현재 URL로 안넘어오므로 AccessToken과 동일하게 처리하거나 비워둠)
-            // 명세서상 RefreshToken 전달 방식이 명확하지 않아 일단 AccessToken만 저장
-            // 필요시 백엔드에서 refreshToken도 쿼리 파라미터로 넘겨줘야 함
-            setAuth(response.data, token, token); 
+            setAuth(response.data, accessToken, refreshToken);
             navigate('/projects');
           } else {
             throw new Error('User data not found');
@@ -41,12 +40,14 @@ export const OAuthCallback = () => {
           console.error('OAuth login failed:', err);
           alert('로그인 처리 중 오류가 발생했습니다.');
           localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
           navigate('/login');
         }
       };
 
       handleLogin();
     } else {
+      console.error('Tokens not found in URL');
       navigate('/login');
     }
   }, [searchParams, navigate, setAuth]);
