@@ -61,7 +61,7 @@ services:
       - editus-network
     volumes:
       - ./backend/logs:/app/logs
-      # - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
+      - ./backend/build/libs/web_ide-0.0.1-SNAPSHOT.jar:/app/app.jar
 
   jenkins:
     build:
@@ -70,6 +70,7 @@ services:
     container_name: jenkins-server
     restart: unless-stopped
     user: root
+    privileged: true
     ports:
       - "8081:8080"
       - "50000:50000"
@@ -78,9 +79,12 @@ services:
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker:ro
       - .:/workspace
+      - /home/ubuntu/web_ide_project:/home/ubuntu/web_ide_project
     environment:
       - JENKINS_OPTS=--httpPort=8080
+      - DOCKER_HOST=unix:///var/run/docker.sock
 
 volumes:
   mysql-data:
