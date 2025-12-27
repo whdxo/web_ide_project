@@ -17,30 +17,36 @@ public class FileContentService {
     private final IdeFileRepository ideFileRepository;
     private final S3PresignService s3PresignService;
 
-    public UploadUrlResponse uploadUrl(Long fileId) {
+    @Transactional
+    public UploadUrlResponse createUploadUrl(Long fileId) {
         IdeFile file = ideFileRepository.findById(fileId)
                 .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다."));
 
-        if (file.getContentKey() == null || file.getContentKey().isBlank()) {
-            String key = "projects/%d/files/%d/content"
-                    .formatted(file.getProjectId(), file.getId());
-            file.setContentKey(key);
-        }
+        String contentKey = "projects/" + file.getProjectId() + "/files/" + file.getId();
 
-        String uploadUrl = s3PresignService.presignPut(file.getContentKey());
-        return new UploadUrlResponse(file.getId(), file.getContentKey(), uploadUrl);
+        String uploadUrl = s3PresignService.generatePutUrl(contentKey);
+
+        file.setContentKey(contentKey); // DB에는 contentKey만 저장
+
+        return UploadUrlResponse.builder()
+                .uploadUrl(uploadUrl)
+                .contentKey(contentKey)
+                .build();
     }
 
     @Transactional(readOnly = true)
-    public DownloadUrlResponse downloadUrl(Long fileId) {
+    public DownloadUrlResponse createDownloadUrl(Long fileId) {
         IdeFile file = ideFileRepository.findById(fileId)
                 .orElseThrow(() -> new IllegalArgumentException("파일이 존재하지 않습니다."));
 
         if (file.getContentKey() == null || file.getContentKey().isBlank()) {
-            throw new IllegalStateException("파일이 아직 S3에 저장되지 않았습니다.");
+            throw new IllegalStateException("아직 업로드된 contentKey가 없습니다.");
         }
 
-        String downloadUrl = s3PresignService.presignGet(file.getContentKey());
-        return new DownloadUrlResponse(file.getId(), downloadUrl);
+        String downloadUrl = s3PresignService.generateGetUrl(file.getContentKey());
+
+        return DownloadUrlResponse.builder()
+                .downloadUrl(downloadUrl)
+                .build();
     }
 }
