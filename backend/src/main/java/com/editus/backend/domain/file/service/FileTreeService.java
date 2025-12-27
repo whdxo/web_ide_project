@@ -30,13 +30,15 @@ public class FileTreeService {
     @Transactional
     public FileResponse createFile(Long projectId, CreateFileRequest req) {
 
-        // 부모 폴더 존재 확인
-        Folder folder = folderRepository.findById(req.getFolderId())
-                .orElseThrow(() -> new IllegalArgumentException("폴더가 존재하지 않습니다."));
+        // 부모 폴더 존재 확인 (folderId가 null이면 루트에 생성)
+        if (req.getFolderId() != null) {
+            Folder folder = folderRepository.findById(req.getFolderId())
+                    .orElseThrow(() -> new IllegalArgumentException("폴더가 존재하지 않습니다."));
 
-        // projectId 일치 검증
-        if (!Objects.equals(folder.getProjectId(), projectId)) {
-            throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
+            // projectId 일치 검증
+            if (!Objects.equals(folder.getProjectId(), projectId)) {
+                throw new IllegalArgumentException("해당 프로젝트의 폴더가 아닙니다.");
+            }
         }
 
         Optional<IdeFile> existingOpt =

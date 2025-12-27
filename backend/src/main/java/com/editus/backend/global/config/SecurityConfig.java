@@ -86,6 +86,7 @@ public class SecurityConfig {
         configuration.addAllowedOrigin("http://localhost:3000");
         configuration.addAllowedOrigin("http://localhost:3001");
         configuration.addAllowedOrigin("http://localhost:5173"); // Vite 개발 서버
+        configuration.addAllowedOrigin("http://localhost:5174"); // Vite 개발 서버 (대체 포트)
 
         configuration.addAllowedOrigin("https://goormeditus.com"); // 운영 도메인
 
