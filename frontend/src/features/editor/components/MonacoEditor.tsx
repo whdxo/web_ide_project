@@ -16,10 +16,11 @@ export function MonacoEditor() {
 
   // 파일 내용 로드 완료 시 에디터에 반영
   useEffect(() => {
-    if (fileData && activeFile) {
-      updateFileContent(activeFile.id, fileData.data.content);
+    if (fileData && activeFile && fileData.content !== activeFile.content) {
+      updateFileContent(activeFile.id, fileData.content);
     }
-  }, [fileData, activeFile, updateFileContent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileData, activeFileId]);
 
   if (!activeFile) {
     return (
