@@ -100,14 +100,10 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(newProject));
     }
 
-<<<<<<< HEAD
-    @GetMapping("/projects/{projectId}/tree")
-=======
     // NOTE: 이 엔드포인트는 FileController의 getTree와 중복되어 주석 처리됨
     // FileController의 /api/projects/{projectId}/tree를 사용할 것
     /*
-    @GetMapping("/{projectId}/tree")
->>>>>>> develop
+    @GetMapping("/projects/{projectId}/tree")
     public ResponseEntity<ApiResponse<ProjectTreeResponseDto>> getProjectTree(@PathVariable Long projectId) {
         List<FileNodeDto> children = new ArrayList<>();
         children.add(new FileNodeDto(101L, "main.ts", "FILE", null));
