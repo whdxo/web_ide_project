@@ -4,6 +4,7 @@ import { useAuthStore } from "@/features/auth/store/authStore";
 import { useMembers, useRemoveMember } from "@/features/member/hooks/useMembers";
 import { useDeleteProject } from "@/features/project/hooks/useProjects";
 import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
+import { authApi } from "@/shared/api/authApi";
 
 interface SettingsPanelProps {
   projectId?: number;
@@ -102,6 +103,19 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
     });
   };
 
+  const handleLogout = async () => {
+    if (confirm("로그아웃 하시겠습니까?")) {
+      try {
+        await authApi.logout();
+      } catch (error) {
+        console.error("Logout failed:", error);
+      } finally {
+        authStore.logout();
+        navigate("/login");
+      }
+    }
+  };
+
   return (
     <div className="flex h-full flex-col bg-[#1f1f1f] text-gray-100">
       {/* 헤더 */}
@@ -161,7 +175,10 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       </div>
 
       {/* 로그아웃 */}
-      <button className="py-4 text-xs text-gray-400 hover:text-white">
+      <button
+        onClick={handleLogout}
+        className="py-4 text-xs text-gray-400 hover:text-white"
+      >
         로그아웃
       </button>
 
