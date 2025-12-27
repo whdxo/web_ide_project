@@ -1,92 +1,126 @@
-import { useState } from "react";
-import { useAIReview } from "../hooks/useAIReview";
+import { useAIReview } from '../hooks/useAIReview';
+import { ReviewResult } from './ReviewResult';
 
 export function AIReviewPanel() {
-  const [code, setCode] = useState("");
-
-  const { data, mutate, isPending, isSuccess } = useAIReview();
-
-  const handleReview = () => {
-    if (!code.trim()) return;
- 
-    mutate({
-      fileId: 0, // 임시 ID
-      content: code,
-    });
-  };
+  const {
+    activeFile,
+    currentReview,
+    reviewHistory,
+    loading,
+    error,
+    activeTab,
+    handleRequestReview,
+    fetchDetail,
+    setActiveTab,
+  } = useAIReview();
 
   return (
     <div className="flex h-full flex-col">
-      {/* header */}
+      {/* 헤더 */}
       <div className="h-10 flex items-center border-b border-gray-700 px-3">
         <h2 className="text-sm font-semibold">AI Review</h2>
       </div>
 
-      {/* 결과 영역 */}
-      <div className="flex-1 overflow-y-auto p-3">
-        {isPending && (
-          <p className="text-xs text-gray-500">
-            AI가 코드를 분석하고 있습니다...
-          </p>
-        )}
-
-        {!isPending && !isSuccess && (
-          <p className="text-xs text-gray-500">
-            AI 리뷰 결과가 여기에 표시됩니다.
-          </p>
-        )}
-
-        {isSuccess && data?.data && (
-          <div className="mt-4 space-y-4 text-xs">
-            {/* 요약 */}
-            <section>
-              <h3 className="mb-1 font-semibold text-sm">요약</h3>
-              <p className="text-gray-300">{data.data.summary}</p>
-            </section>
-
-            {/* 이슈 */}
-            <section>
-              <h3 className="mb-1 font-semibold text-sm">문제점</h3>
-              <ul className="list-disc pl-4 space-y-1 text-gray-300">
-                {data.data.issues.map((issue, idx) => (
-                  <li key={idx}>{issue}</li>
-                ))}
-              </ul>
-            </section>
-
-            {/* 제안 */}
-            <section>
-              <h3 className="mb-1 font-semibold text-sm">개선 제안</h3>
-              <ul className="list-disc pl-4 space-y-1 text-gray-300">
-                {data.data.suggestions.map((suggestion, idx) => (
-                  <li key={idx}>{suggestion}</li>
-                ))}
-              </ul>
-            </section>
-          </div>
-        )}
+      {/* 탭 */}
+      <div className="flex border-b border-gray-700">
+        <button
+          onClick={() => setActiveTab('current')}
+          className={`px-4 py-2 text-xs ${
+            activeTab === 'current'
+              ? 'border-b-2 border-blue-500 text-blue-500'
+              : 'text-gray-400'
+          }`}
+        >
+          현재 리뷰
+        </button>
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`px-4 py-2 text-xs ${
+            activeTab === 'history'
+              ? 'border-b-2 border-blue-500 text-blue-500'
+              : 'text-gray-400'
+          }`}
+        >
+          이력 ({reviewHistory.length})
+        </button>
       </div>
 
-      {/* ===== 입력 영역 (하단 고정) ===== */}
-      <div className="border-t border-gray-700 bg-[#181818] p-3">
-        <div className="mb-2 text-xs text-gray-400">Add Content</div>
+      {/* 내용 영역 */}
+      <div className="flex-1 overflow-y-auto p-3">
+        {!activeFile && (
+          <p className="text-xs text-gray-500">파일을 먼저 열어주세요</p>
+        )}
 
-        <textarea
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="리뷰 코드를 입력해주세요..."
-          className="w-full h-24 resize-none rounded bg-gray-800 p-2 text-xs outline-none"
-        />
+        {activeFile && activeTab === 'current' && (
+          <div className="space-y-3">
+            {/* 파일 정보 */}
+            <div className="rounded bg-gray-800 p-2 text-xs text-gray-400">
+              <div>파일: {activeFile.name}</div>
+              <div>경로: {activeFile.path}</div>
+            </div>
 
-        <div className="mt-2 flex justify-end">
-          <button
-            onClick={handleReview}
-            className="rounded bg-[#3545D6] px-4 py-1 text-xs hover:opacity-90 disabled:opacity-50"
-            disabled={isPending}
-          >
-            {isPending ? "분석 중..." : "입력"}
-          </button>
-        </div>
+            {/* 리뷰 요청 버튼 */}
+            <button
+              onClick={handleRequestReview}
+              disabled={loading}
+              className="w-full rounded bg-blue-600 px-4 py-2 text-xs hover:bg-blue-700 disabled:opacity-50"
+            >
+              {loading ? '분석 중...' : 'AI 리뷰 요청'}
+            </button>
+
+            {/* 에러 메시지 */}
+            {error && (
+              <div className="rounded bg-red-900/20 p-2 text-xs text-red-400">
+                {error}
+              </div>
+            )}
+
+            {/* 리뷰 결과 */}
+            {currentReview && <ReviewResult review={currentReview} />}
+
+            {!currentReview && !loading && (
+              <p className="text-xs text-gray-500">
+                AI 리뷰 결과가 여기에 표시됩니다
+              </p>
+            )}
+          </div>
+        )}
+
+        {activeFile && activeTab === 'history' && (
+          <div className="space-y-2">
+            {reviewHistory.length === 0 && (
+              <p className="text-xs text-gray-500">리뷰 이력이 없습니다</p>
+            )}
+
+            {reviewHistory.map((review) => (
+              <div
+                key={review.id}
+                onClick={() => fetchDetail(review.id)}
+                className="cursor-pointer rounded bg-gray-800 p-3 hover:bg-gray-700"
+              >
+                <div className="flex justify-between items-center mb-1">
+                  <span
+                    className={`text-xs font-semibold px-2 py-1 rounded ${
+                      review.score >= 80
+                        ? 'bg-green-900/30 text-green-400'
+                        : review.score >= 60
+                        ? 'bg-yellow-900/30 text-yellow-400'
+                        : 'bg-red-900/30 text-red-400'
+                    }`}
+                  >
+                    {review.score}점
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-300 line-clamp-2">
+                  {review.summary}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

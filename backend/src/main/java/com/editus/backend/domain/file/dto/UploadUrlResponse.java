@@ -1,7 +1,11 @@
 package com.editus.backend.domain.file.dto;
 
-public record UploadUrlResponse(
-        Long fileId,
-        String contentKey,
-        String uploadUrl
-) {}
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class UploadUrlResponse {
+    private final String uploadUrl;
+    private final String contentKey;
+}
