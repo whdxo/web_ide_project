@@ -16,7 +16,7 @@ export function MemberPanel({ projectId, currentUserId }: MemberPanelProps) {
 
   // 현재 사용자가 팀장인지 확인
   const currentUserMember = data?.find((m) => m.userId === currentUserId);
-  const isOwner = currentUserMember?.isOwner || false;
+  const isOwner = currentUserMember?.role === 'OWNER';
 
   if (isLoading) {
     return (
@@ -57,13 +57,15 @@ export function MemberPanel({ projectId, currentUserId }: MemberPanelProps) {
           총 {data?.length || 0}명의 멤버
         </span>
 
-        <button
-          onClick={() => setIsInviteModalOpen(true)}
-          className="p-2 rounded hover:bg-gray-700 text-gray-400"
-          title="멤버 초대"
-        >
-          <IoPersonAdd size={18} />
-        </button>
+        {isOwner && (
+          <button
+            onClick={() => setIsInviteModalOpen(true)}
+            className="p-2 rounded hover:bg-gray-700 text-gray-400"
+            title="멤버 초대"
+          >
+            <IoPersonAdd size={18} />
+          </button>
+        )}
       </div>
 
       {/* 초대 모달 */}

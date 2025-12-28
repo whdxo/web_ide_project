@@ -7,6 +7,10 @@ export interface Project {
   owner_id: number;
   created_at: string;
   project_type: 'PERSONAL' | 'TEAM';
+  current_user_role?: 'OWNER' | 'USER';
+  can_delete?: boolean;
+  can_invite?: boolean;
+  can_leave?: boolean;
 }
 
 export interface CreateProjectRequest {
@@ -32,7 +36,7 @@ export interface ProjectMember {
   name: string;
   email: string;
   joinedAt?: string;
-  isOwner: boolean;
+  role: 'OWNER' | 'EDITOR' | 'USER';
 }
 
 export interface AddMemberRequest {

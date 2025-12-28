@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProjects, useDeleteProject, useLeaveProjectFromList } from '../hooks/useProjects';
 import { Button } from '@/shared/components/Button';
-import { useAuthStore } from '@/features/auth/store/authStore';
 import { Trash2, LogOut } from 'lucide-react';
 import { DeleteProjectModal } from './DeleteProjectModal';
 
@@ -16,7 +15,6 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
   const { projects, isLoading } = useProjects();
   const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
   const { mutate: leaveProject, isPending: isLeaving } = useLeaveProjectFromList();
-  const user = useAuthStore((state) => state.user);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<{ id: number; name: string; isOwner: boolean } | null>(null);
@@ -83,7 +81,7 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
                 {project.name}
               </h3>
 
-              {user?.userId === project.owner_id ? (
+              {(project.can_delete ?? false) ? (
                 <button
                   onClick={(e) => handleActionClick(e, project.project_id, project.name, true)}
                   className="absolute top-6 right-6 text-gray-300 group-hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
@@ -116,4 +114,3 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
     </div>
   );
 };
-
