@@ -120,6 +120,22 @@ public class ProjectService {
         projectMemberRepository.deleteByProjectAndUser(project, userToRemove);
     }
 
+    @Transactional
+    public void deleteProject(Long projectId, Long requesterId) {
+        // (권장) 삭제되지 않은 프로젝트만 대상으로
+        Project project = projectRepository.findByProjectIdAndDeletedFalse(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+
+        // 팀장(OWNER)만 삭제 가능
+        if (!project.getOwner().getUserId().equals(requesterId)) {
+            throw new IllegalArgumentException("프로젝트 삭제 권한이 없습니다 (오너만 가능).");
+        }
+
+        // Soft delete 처리
+        project.softDelete();
+        // save 호출 없어도 됨(JPA 더티체킹)
+    }
+
     // 매일 새벽 3시에 만료된 초대 코드 Soft Delete 처리
     @org.springframework.scheduling.annotation.Scheduled(cron = "0 0 3 * * *")
     @Transactional
