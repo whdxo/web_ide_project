@@ -1,5 +1,7 @@
 package com.editus.backend.domain.chat.controller;
 
+import com.editus.backend.domain.auth.entity.User;
+import com.editus.backend.domain.auth.repository.UserRepository;
 import com.editus.backend.domain.chat.dto.ChatMessage;
 import com.editus.backend.domain.chat.service.ChatService;
 import com.editus.backend.domain.chat.service.RedisPublisher;
@@ -19,6 +21,7 @@ public class ChatController {
     private final RedisPublisher redisPublisher;
     private final ChannelTopic topic;
     private final ChatService chatService;
+    private final UserRepository userRepository;
 
     /**
      * WebSocket으로 메시지 전송
@@ -39,17 +42,18 @@ public class ChatController {
                 org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
                         .getContext().getAuthentication();
 
-                if (auth != null && auth.getName() != null && !auth.getName().equals("anonymousUser")) {
-                    try {
-                        // username이 ID(Long)인 경우
-                        message.setUserId(Long.parseLong(auth.getName()));
-                    } catch (NumberFormatException e) {
-                        // username이 닉네임 문자열인 경우.. 현재는 임시로 1L 할당 (추후 UserDetails에서 ID 추출 로직 필요)
-                        message.setUserId(1L);
-                    }
+                if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
+                    String email = auth.getName(); // JWT에서 email 추출
+
+                    // email로 User 조회하여 userId 가져오기
+                    User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+
+                    message.setUserId(user.getUserId());
+                    System.out.println("User authenticated - Email: " + email + ", UserId: " + user.getUserId());
                 } else {
-                    // 인증 정보 없음 - 임시 할당 (개발용)
-                    message.setUserId(1L);
+                    // 인증되지 않은 사용자는 채팅 불가
+                    throw new RuntimeException("인증되지 않은 사용자입니다.");
                 }
             }
 
@@ -58,16 +62,20 @@ public class ChatController {
                 message.setMessage(message.getSender() + "님이 입장하셨습니다.");
             }
 
-            // 1. DB에 메시지 저장
-            try {
-                ChatMessage savedMessage = chatService.saveMessage(message);
-                message = savedMessage; // Use saved message with ID and timestamps
-            } catch (Exception dbEx) {
-                System.err.println("DB Save Failed: " + dbEx.getMessage());
-                // Continue to broadcast even if DB fails?
-                // Usually better to fail, but for debugging let's continue or rethrow.
-                // Re-throwing to see error in client.
-                throw dbEx;
+            // 1. DB에 메시지 저장 (PRESENCE 메시지는 제외)
+            if (!ChatMessage.MessageType.PRESENCE.equals(message.getType())) {
+                try {
+                    ChatMessage savedMessage = chatService.saveMessage(message);
+                    message = savedMessage; // Use saved message with ID and timestamps
+                } catch (Exception dbEx) {
+                    System.err.println("DB Save Failed: " + dbEx.getMessage());
+                    // Continue to broadcast even if DB fails?
+                    // Usually better to fail, but for debugging let's continue or rethrow.
+                    // Re-throwing to see error in client.
+                    throw dbEx;
+                }
+            } else {
+                System.out.println("PRESENCE message - skipping DB save");
             }
 
             // 2. Broadcast using Redis (for multi-server support)
