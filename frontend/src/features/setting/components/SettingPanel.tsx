@@ -63,15 +63,9 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       return;
     }
 
-    removeMember.mutate(myMember.userId, {
-      onSuccess: () => {
-        alert("프로젝트에서 나갔습니다");
-        navigate("/projects");
-      },
-      onError: (error) => {
-        console.error("프로젝트 나가기 실패:", error);
-        alert("프로젝트 나가기에 실패했습니다");
-      }
+    leaveProjectMutation.mutate({
+      projectId,
+      memberId: myMember.userId
     });
   };
 
