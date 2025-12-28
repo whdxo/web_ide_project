@@ -28,13 +28,11 @@ export interface InviteCodeResponse {
 
 
 export interface ProjectMember {
-  memberId: number;
-  projectId: number;
   userId: number;
-  role: 'OWNER' | 'EDITOR' | 'USER';
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
   joinedAt?: string;
+  isOwner: boolean;
 }
 
 export interface AddMemberRequest {

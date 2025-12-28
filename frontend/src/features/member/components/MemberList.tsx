@@ -17,8 +17,8 @@ export function MemberList({
 }: MemberListProps) {
   // 팀장을 맨 위로, 나머지는 이름순 정렬
   const sortedMembers = [...members].sort((a, b) => {
-    if (a.role === "OWNER") return -1;
-    if (b.role === "OWNER") return 1;
+    if (a.isOwner) return -1;
+    if (b.isOwner) return 1;
     return 0;
   });
 
@@ -26,7 +26,7 @@ export function MemberList({
     <div className="divide-y divide-gray-800">
       {sortedMembers.map((member) => (
         <MemberItem
-          key={member.memberId}
+          key={member.userId}
           member={member}
           isCurrentUser={member.userId === currentUserId}
           canDelete={isOwner && member.userId !== currentUserId}

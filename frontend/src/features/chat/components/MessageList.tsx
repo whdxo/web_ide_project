@@ -8,8 +8,10 @@ export function MessageList() {
   return (
     <div className="flex-1 overflow-y-auto p-3 space-y-3">
       {messages.map((msg, idx) => {
-        // sender는 문자열(닉네임)로 옴. 내 이름과 비교
-        const isMine = msg.sender === user?.name;
+        // sender가 객체인지 문자열인지 확인하여 처리
+        const senderId = typeof msg.sender === 'object' ? msg.sender.id : -1;
+        const senderNickname = typeof msg.sender === 'object' ? msg.sender.nickname : msg.sender;
+        const isMine = user ? senderId === user.userId : false;
 
         return (
           <div
@@ -20,15 +22,15 @@ export function MessageList() {
               {/* 닉네임 */}
               {!isMine && (
                 <div className="mb-1 text-xs text-gray-400">
-                  {msg.sender}
+                  {senderNickname}
                 </div>
               )}
 
               {/* 말풍선 */}
               <div
                 className={`rounded-lg px-3 py-2 text-sm ${isMine
-                    ? "bg-[#3545D6] text-white rounded-br-none"
-                    : "bg-gray-700 text-white rounded-bl-none"
+                  ? "bg-[#3545D6] text-white rounded-br-none"
+                  : "bg-gray-700 text-white rounded-bl-none"
                   }`}
               >
                 {msg.message}
