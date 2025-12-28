@@ -126,6 +126,7 @@ public class ProjectService {
         projectMemberRepository.deleteByProjectAndUser(project, userToRemove);
     }
 
+
     // ==================== 프로젝트 CRUD 기능 ====================
 
     /**
@@ -215,6 +216,7 @@ public class ProjectService {
                 .ownerId(project.getOwner().getUserId())
                 .createdAt(project.getCreatedAt().toString())
                 .build();
+
     }
 
     // 매일 새벽 3시에 만료된 초대 코드 Soft Delete 처리

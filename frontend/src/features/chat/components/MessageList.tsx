@@ -26,22 +26,20 @@ export function MessageList() {
 
               {/* 말풍선 */}
               <div
-                className={`rounded-lg px-3 py-2 text-sm ${
-                  isMine
+                className={`rounded-lg px-3 py-2 text-sm ${isMine
                     ? "bg-[#3545D6] text-white rounded-br-none"
                     : "bg-gray-700 text-white rounded-bl-none"
-                }`}
+                  }`}
               >
                 {msg.message}
               </div>
 
               {/* 시간 */}
               <div
-                className={`mt-1 text-[10px] text-gray-500 ${
-                  isMine ? "text-right" : "text-left"
-                }`}
+                className={`mt-1 text-[10px] text-gray-500 ${isMine ? "text-right" : "text-left"
+                  }`}
               >
-                {new Date(msg.sentAt).toLocaleTimeString("ko-KR", {
+                {new Date(msg.sentAt || Date.now()).toLocaleTimeString("ko-KR", {
                   hour: "2-digit",
                   minute: "2-digit",
                 })}

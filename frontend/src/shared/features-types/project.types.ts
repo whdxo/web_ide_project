@@ -41,6 +41,20 @@ export type CreateProjectResponse = ApiResponse<Project>;
 export type GetProjectsResponse = ApiResponse<Project[]>;
 export type GetProjectMembersResponse = ApiResponse<ProjectMember[]>;
 export type AddMemberResponse = ApiResponse<ProjectMember>;
-export type JoinProjectResponse = ApiResponse<void>;
+export interface ProjectJoinResponseData {
+  project: Project;
+  success: boolean;
+}
+export type JoinProjectResponse = ApiResponse<ProjectJoinResponseData>;
 export type CreateInviteCodeResponse = ApiResponse<InviteCodeResponse>;
+
+export interface InvitationInfo {
+  project_id: number;
+  projectName: string;
+  description?: string;
+  inviterName: string;
+  expiresAt: string;
+  project_type: 'PERSONAL' | 'TEAM';
+}
+export type InvitationInfoResponse = ApiResponse<InvitationInfo>;
 

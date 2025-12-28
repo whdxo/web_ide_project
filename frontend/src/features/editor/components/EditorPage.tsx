@@ -21,9 +21,7 @@ import { SettingsPanel } from "@/features/setting/components/SettingPanel";
 import { MemberPanel } from "@/features/member/components/MemberPanel";
 import { useEditorStore } from "../store/editorStore";
 import { useSaveFile } from "../hooks/useFileContent";
-
-import { codeApi } from "@/shared/api/codeApi";
-
+import { editorApi } from "@/shared/api/editorApi";
 
 export function EditorPage() {
   const location = useLocation();
@@ -56,21 +54,7 @@ export function EditorPage() {
   /**
    * Monaco Editor 언어 → Judge0 언어 변환
    */
-  const getExecutionLanguage = (monacoLanguage: string): string => {
-    const languageMap: Record<string, string> = {
-      javascript: 'javascript',
-      typescript: 'typescript',
-      python: 'python',
-      java: 'java',
-      cpp: 'cpp',
-      c: 'c',
-      ruby: 'ruby',
-      go: 'go',
-      rust: 'rust',
-      php: 'php',
-    };
-    return languageMap[monacoLanguage.toLowerCase()] || 'python';
-  };
+
 
   const handleSave = () => {
     const activeFile = openFiles.find((f) => f.id === activeFileId);
@@ -108,55 +92,54 @@ export function EditorPage() {
     setIsRunning(true);
 
     addOutput(`> Running ${activeFile.name}...`);
-    addOutput('');
+    setIsRunning(true);
 
     try {
-      // 언어 변환
-      const executionLanguage = getExecutionLanguage(activeFile.language);
-
-      // API 호출
-      const response = await codeApi.executeCode({
+      const response = await editorApi.executeCode({
         code: activeFile.content,
-        language: executionLanguage,
-        input: '',
+        language: activeFile.language,
       });
 
-      // 성공 여부 확인
-      if (!response.success || !response.data) {
-        addError(`실행 실패: ${response.message || '알 수 없는 오류'}`);
-        return;
+      if (response.success && response.data) {
+        // 표준 출력 (stdout)
+        if (response.data.output) {
+          const lines = response.data.output.split('\n');
+          lines.forEach(line => {
+            if (line.trim()) {
+              addOutput(line);
+            }
+          });
+        }
+
+        // 에러 출력 (stderr)
+        if (response.data.error) {
+          const errorLines = response.data.error.split('\n');
+          errorLines.forEach(line => {
+            if (line.trim()) {
+              addError(line);
+            }
+          });
+        }
+
+        // 실행 완료 메시지
+        if (response.data.exitCode === 0) {
+          addOutput("✅ 실행 완료");
+        } else {
+          addError(`❌ 종료 코드: ${response.data.exitCode}`);
+        }
+      } else {
+        addError(response.message || "실행 실패");
       }
-
-      const { output, error, status, time } = response.data;
-
-
-      // 실행 결과 출력
-      if (output) {
-        addOutput(output);
+    } catch (error: any) {
+      addError("❌ 코드 실행 실패");
+      if (error.response?.data?.message) {
+        addError(error.response.data.message);
+      } else {
+        addError(error.message || "알 수 없는 오류");
       }
-
-      // 에러가 있으면 에러 출력
-      if (error) {
-        addError(error);
-      }
-
-      // 실행 상태 및 시간 출력
-      addOutput('');
-      addOutput(`Status: ${status}`);
-      addOutput(`Execution time: ${time.toFixed(3)}s`);
-      addOutput(`Finished running ${activeFile.name}`);
-
-    } catch (error) {
-      // API 호출 실패
-      const errorMessage = error instanceof Error
-        ? error.message
-        : '코드 실행 중 오류가 발생했습니다';
-      addError(`❌ ${errorMessage}`);
     } finally {
-      // 로딩 상태 종료
       setIsRunning(false);
     }
-
   };
 
   return (
@@ -168,11 +151,10 @@ export function EditorPage() {
         <div className="ml-auto flex items-center gap-3">
           <button
             onClick={() => togglePanel("members")}
-            className={`p-2 rounded-md ${
-              rightPanel === "members"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "members"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
             title="멤버 목록"
           >
             <IoPeople size={20} />
@@ -180,44 +162,40 @@ export function EditorPage() {
 
           <button
             onClick={() => togglePanel("chat")}
-            className={`p-2 rounded-md ${
-              rightPanel === "chat"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "chat"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoChatbubbleEllipsesOutline size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("todo")}
-            className={`p-2 rounded-md ${
-              rightPanel === "todo"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "todo"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoCalendarOutline size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("ai")}
-            className={`p-2 rounded-md ${
-              rightPanel === "ai"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "ai"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <RiRobot2Fill size={20} />
           </button>
 
           <button
             onClick={() => togglePanel("settings")}
-            className={`p-2 rounded-md ${
-              rightPanel === "settings"
-                ? "bg-gray-700 text-white"
-                : "bg-gray-800 hover:bg-gray-700 text-gray-300"
-            }`}
+            className={`p-2 rounded-md ${rightPanel === "settings"
+              ? "bg-gray-700 text-white"
+              : "bg-gray-800 hover:bg-gray-700 text-gray-300"
+              }`}
           >
             <IoSettingsOutline size={20} />
           </button>
@@ -230,9 +208,8 @@ export function EditorPage() {
         <div className="w-12 bg-[#181818] border-r border-gray-800 flex flex-col items-center py-2 gap-3">
           <button
             onClick={() => setIsFileTreeOpen((prev) => !prev)}
-            className={`p-2 rounded hover:bg-gray-700 ${
-              isFileTreeOpen ? "bg-gray-700 text-white" : "text-gray-400"
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${isFileTreeOpen ? "bg-gray-700 text-white" : "text-gray-400"
+              }`}
             title="파일 트리"
           >
             <VscFiles size={20} />
@@ -240,9 +217,8 @@ export function EditorPage() {
 
           <button
             onClick={handleSave}
-            className={`p-2 rounded hover:bg-gray-700 ${
-              saveFile.isPending ? "text-gray-600" : "text-gray-400"
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${saveFile.isPending ? "text-gray-600" : "text-gray-400"
+              }`}
             title={saveFile.isPending ? "저장 중..." : "저장"}
             disabled={saveFile.isPending || !activeFileId}
           >
@@ -251,15 +227,12 @@ export function EditorPage() {
 
           <button
             onClick={handleRun}
-            className={`p-2 rounded hover:bg-gray-700 ${
-
-              isRunning
-                ? 'text-gray-600 cursor-not-allowed'
-                : 'text-green-400 hover:text-green-300'
-            }`}
+            className={`p-2 rounded hover:bg-gray-700 ${isRunning
+              ? 'text-gray-600 cursor-not-allowed'
+              : 'text-green-400 hover:text-green-300'
+              }`}
             title={isRunning ? '실행 중...' : '코드 실행'}
             disabled={!activeFileId || isRunning}
-
           >
             <VscPlay size={20} />
           </button>
@@ -299,8 +272,8 @@ export function EditorPage() {
                 <MemberPanel projectId={projectId} currentUserId={currentUserId} />
               )}
               {rightPanel === "settings" && (
-                <SettingsPanel 
-                  projectId={projectId} 
+                <SettingsPanel
+                  projectId={projectId}
                   onOpenPanel={(panel) => setRightPanel(panel)}
                 />
               )}

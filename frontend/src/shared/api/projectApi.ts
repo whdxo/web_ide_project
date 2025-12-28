@@ -1,18 +1,23 @@
 import { apiClient } from './client';
 import type { ApiResponse } from '@/shared/types/common.types';
-import type { 
-  CreateProjectRequest, 
-  CreateProjectResponse, 
+import type {
+  CreateProjectRequest,
+  CreateProjectResponse,
   GetProjectsResponse,
-  GetProjectMembersResponse, 
-  AddMemberRequest, 
+  GetProjectMembersResponse,
+  AddMemberRequest,
   AddMemberResponse,
   JoinProjectRequest,
   JoinProjectResponse,
-  CreateInviteCodeResponse
+  CreateInviteCodeResponse,
+  InvitationInfoResponse
 } from '@/shared/features-types/project.types';
 
 export const projectApi = {
+  getInvitationInfo: async (code: string): Promise<InvitationInfoResponse> => {
+    const response = await apiClient.get<InvitationInfoResponse>(`/api/projects/invite/${code}`);
+    return response.data;
+  },
   getProjects: async (): Promise<GetProjectsResponse> => {
     const response = await apiClient.get<GetProjectsResponse>('/api/projects');
     return response.data;

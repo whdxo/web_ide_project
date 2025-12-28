@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { projectApi } from '@/shared/api/projectApi';
 import { useProjectInvite } from '../hooks/useProjectInvite';
 import { Button } from '@/shared/components/Button';
-import type { InvitationInfoResponse } from '@/shared/features-types/project.types';
+import type { InvitationInfo } from '@/shared/features-types/project.types';
 import { IoPeopleCircleOutline, IoCalendarOutline } from 'react-icons/io5';
 import { useAuthStore } from '@/features/auth/store/authStore';
 
@@ -14,7 +14,7 @@ export function InviteJoinPage() {
     const { joinProject } = useProjectInvite();
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-    const [info, setInfo] = useState<InvitationInfoResponse | null>(null);
+    const [info, setInfo] = useState<InvitationInfo | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 

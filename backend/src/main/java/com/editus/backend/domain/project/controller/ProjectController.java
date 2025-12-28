@@ -98,9 +98,11 @@ public class ProjectController {
     @DeleteMapping("/projects/{projectId}")
     public ResponseEntity<ApiResponse<Void>> deleteProject(
             @PathVariable Long projectId,
+
             Authentication authentication) {
         Long userId = getCurrentUserId(authentication);
         projectService.deleteProjectWithAuth(projectId, userId);
+
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
