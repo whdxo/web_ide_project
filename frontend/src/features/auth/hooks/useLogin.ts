@@ -1,13 +1,14 @@
 import { useMutation } from '@tanstack/react-query';
 import { authApi } from '@/shared/api/authApi';
 import { LoginRequest } from '@/shared/features-types/auth.types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
 export const useLogin = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
-  
+
   return useMutation({
     mutationFn: (credentials: LoginRequest) => authApi.login(credentials),
     onSuccess: (response) => {
@@ -15,7 +16,13 @@ export const useLogin = () => {
       if (response.data?.accessToken && response.data?.user) {
         setAuth(response.data.user, response.data.accessToken, response.data.refreshToken);
       }
-      navigate('/projects');
+
+      const returnUrl = searchParams.get('returnUrl');
+      if (returnUrl) {
+        navigate(decodeURIComponent(returnUrl));
+      } else {
+        navigate('/projects');
+      }
     },
     onError: (error: any) => {
       console.error('Login failed:', error);

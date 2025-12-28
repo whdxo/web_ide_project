@@ -31,7 +31,7 @@ public class IdeFile {
     private String language;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String content;
 
     @Column(name = "content_key")

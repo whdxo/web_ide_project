@@ -48,6 +48,10 @@ export function FileNode({
         'java': 'java',
         'cpp': 'cpp',
         'c': 'c',
+        'rb': 'ruby',
+        'go': 'go',
+        'rs': 'rust',
+        'php': 'php',
         'html': 'html',
         'css': 'css',
         'json': 'json',
@@ -153,10 +157,18 @@ export function FileNode({
             value={tempName}
             onChange={(e) => setTempName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") handleCreate();
-              if (e.key === "Escape") setIsCreating(null);
+              if (e.key === "Enter") {
+                e.preventDefault();
+                e.stopPropagation();
+                handleCreate();
+              }
+              if (e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsCreating(null);
+                setTempName("");
+              }
             }}
-            onBlur={() => setIsCreating(null)}
             className="w-full rounded bg-gray-800 px-1 outline-none text-white"
             placeholder={isCreating === "folder" ? "폴더 이름" : "파일 이름"}
           />

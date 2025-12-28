@@ -30,4 +30,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query("UPDATE ChatMessage m SET m.isRead = true, m.readAt = :readAt WHERE m.roomId = :roomId AND m.isRead = false")
     void markRoomAsRead(@Param("roomId") String roomId, @Param("readAt") LocalDateTime readAt);
 
+    // 채팅방의 모든 메시지 삭제
+    void deleteByRoomId(String roomId);
 }

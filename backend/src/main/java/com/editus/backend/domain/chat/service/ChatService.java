@@ -24,6 +24,7 @@ public class ChatService {
         com.editus.backend.domain.chat.entity.ChatMessage entity = com.editus.backend.domain.chat.entity.ChatMessage
                 .builder()
                 .roomId(message.getRoomId())
+                .userId(message.getUserId()) // userId 매핑 추가
                 .sender(message.getSender())
                 .message(message.getMessage())
                 .type(com.editus.backend.domain.chat.entity.ChatMessage.MessageType.valueOf(message.getType().name()))
@@ -83,11 +84,12 @@ public class ChatService {
         ChatMessage dto = new ChatMessage();
         dto.setId(entity.getId());
         dto.setRoomId(entity.getRoomId());
+        dto.setUserId(entity.getUserId()); // userId 매핑 추가
         dto.setSender(entity.getSender());
         dto.setMessage(entity.getMessage());
         dto.setType(ChatMessage.MessageType.valueOf(entity.getType().name()));
         dto.setSentAt(entity.getSentAt());
-        dto.setRead(entity.isRead());
+        dto.setIsRead(entity.isRead());
         dto.setReadAt(entity.getReadAt());
         return dto;
     }
