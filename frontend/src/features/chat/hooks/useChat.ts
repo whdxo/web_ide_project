@@ -9,9 +9,10 @@ export function useChat() {
     sendMessage: (message: string) => {
       // 우선은 Mock
       addMessage({
-        projectId: 1,
+        roomId: "1",
         sender: { id: 3, nickname: "EditUs" },
         message,
+        type: "TALK",
         sentAt: new Date().toISOString(),
       });
     },
