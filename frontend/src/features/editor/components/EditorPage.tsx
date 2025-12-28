@@ -36,7 +36,6 @@ export function EditorPage() {
 
   const { openFiles, activeFileId } = useEditorStore();
   const saveFile = useSaveFile();
-  const executeCode = useExecuteCode();
   const { addOutput, addError } = useTerminalStore();
 
   // URL에서 가져온 projectId 또는 임시 값
