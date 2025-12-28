@@ -78,6 +78,20 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
     setEditingTodo(null);
   };
 
+  // 우선순위 색상 매핑 함수
+  const getPriorityColor = (priority: "LOW" | "MEDIUM" | "HIGH") => {
+    switch (priority) {
+      case "HIGH":
+        return "bg-red-500";
+      case "MEDIUM":
+        return "bg-yellow-500";
+      case "LOW":
+        return "bg-gray-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
   return (
     <>
       {/* ===== Todo List ===== */}
@@ -136,6 +150,12 @@ export function TodoList({ isMainPage = false }: TodoListProps) {
                   checked={todo.completed}
                   onChange={() => toggleTodo(todo.id)}
                   className="accent-blue-500"
+                />
+
+                {/* 우선순위 색상 인디케이터 */}
+                <div
+                  className={`w-2 h-2 rounded-full ${getPriorityColor(todo.priority)}`}
+                  title={`우선순위: ${todo.priority}`}
                 />
 
                 {/* 제목 */}

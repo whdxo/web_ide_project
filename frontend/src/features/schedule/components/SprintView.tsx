@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { useScheduleStore } from "../store/scheduleStore";
+import { useTodoStore } from "../store/todoStore";
+import { todoApi, TodoResponse } from "../api/todoApi";
 
 const DAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -11,6 +14,26 @@ export function SprintView() {
     selectDate,
   } = useScheduleStore();
 
+  // TodoList에서 todo가 변경되었는지 감지하기 위해 todos 구독
+  const { todos } = useTodoStore();
+
+  // 캘린더 표시용 전체 todos (선택된 날짜와 무관하게 모든 todos)
+  const [allTodos, setAllTodos] = useState<TodoResponse[]>([]);
+
+  // 전체 todos 가져오기 (월 변경 또는 todo 변경 시)
+  useEffect(() => {
+    const fetchAllTodos = async () => {
+      try {
+        // dueDate 파라미터 없이 호출하면 전체 todos 가져옴
+        const todos = await todoApi.getTodos();
+        setAllTodos(todos);
+      } catch (error) {
+        console.error('Failed to fetch todos for calendar:', error);
+      }
+    };
+    fetchAllTodos();
+  }, [currentMonth, todos]);
+
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
@@ -21,6 +44,11 @@ export function SprintView() {
     ...Array(firstDay).fill(null),
     ...Array.from({ length: lastDate }, (_, i) => i + 1),
   ];
+
+  // 특정 날짜에 일정이 있는지 확인하는 함수
+  const hasEventsOnDate = (dateString: string) => {
+    return allTodos.some((todo) => todo.dueDate === dateString);
+  };
 
   return (
     <div className="border-b border-gray-700">
@@ -63,19 +91,25 @@ export function SprintView() {
           )}-${String(date).padStart(2, "0")}`;
 
           const isSelected = selectedDate === fullDate;
+          const hasEvents = hasEventsOnDate(fullDate);
 
           return (
-            <button
-              key={i}
-              onClick={() => selectDate(fullDate)}
-              className={`w-7 h-7 rounded-full text-xs ${
-                isSelected
-                  ? "bg-[#3545D6] text-white"
-                  : "hover:bg-gray-700"
-              }`}
-            >
-              {date}
-            </button>
+            <div key={i} className="flex flex-col items-center">
+              <button
+                onClick={() => selectDate(fullDate)}
+                className={`w-7 h-7 rounded-full text-xs ${
+                  isSelected
+                    ? "bg-[#3545D6] text-white"
+                    : "hover:bg-gray-700"
+                }`}
+              >
+                {date}
+              </button>
+              {/* 일정이 있는 날짜에 동그라미 표시 */}
+              {hasEvents && (
+                <div className="w-1 h-1 rounded-full bg-blue-400 mt-0.5" />
+              )}
+            </div>
           );
         })}
       </div>
