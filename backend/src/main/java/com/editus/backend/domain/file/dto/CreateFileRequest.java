@@ -12,7 +12,7 @@ public class CreateFileRequest {
     @NotBlank(message = "파일명은 필수입니다.")
     private String name;
 
-    @NotNull(message = "folderId는 필수입니다.")
+    // null이면 루트에 생성
     private Long folderId;
 
     @NotBlank(message = "language는 필수입니다.")

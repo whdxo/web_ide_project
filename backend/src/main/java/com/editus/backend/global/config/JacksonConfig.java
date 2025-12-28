@@ -17,4 +17,5 @@ public class JacksonConfig {
     public WebClient.Builder webClientBuilder() {
         return WebClient.builder();
     }
+
 }

@@ -20,7 +20,7 @@ public class IdeFile {
     @Column(nullable = false)
     private Long projectId;
 
-    @Column(nullable = false)
+    // folderId가 null이면 루트에 파일 생성
     private Long folderId;
 
     /* ===== 파일 메타데이터 ===== */
@@ -31,7 +31,7 @@ public class IdeFile {
     private String language;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String content;
 
     @Column(name = "content_key")

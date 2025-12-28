@@ -7,7 +7,7 @@ export const useFileTree = (projectId: number | null) => {
     queryFn: async () => {
       if (!projectId) throw new Error('Project ID is required');
       const response = await fileApi.getProjectTree(projectId);
-      return response.data;
+      return response; // getProjectTree already returns response.data, don't access .data again
     },
     enabled: !!projectId,
     staleTime: 30000,

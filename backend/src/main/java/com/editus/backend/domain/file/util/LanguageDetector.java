@@ -20,6 +20,13 @@ public class LanguageDetector {
             case "ts" -> "typescript";
             case "jsx" -> "javascript";
             case "tsx" -> "typescript";
+            case "py" -> "python";
+            case "rb" -> "ruby";
+            case "go" -> "go";
+            case "rs" -> "rust";
+            case "php" -> "php";
+            case "c" -> "c";
+            case "cpp", "cc", "cxx" -> "cpp";
             case "html" -> "html";
             case "css" -> "css";
             case "json" -> "json";
