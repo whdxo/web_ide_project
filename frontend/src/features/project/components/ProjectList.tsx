@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjects, useDeleteProject } from '../hooks/useProjects';
+import { useProjects, useDeleteProject, useLeaveProjectFromList } from '../hooks/useProjects';
 import { Button } from '@/shared/components/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { Trash2 } from 'lucide-react';
+import { Trash2, LogOut } from 'lucide-react';
 import { DeleteProjectModal } from './DeleteProjectModal';
 
 interface ProjectListProps {
@@ -14,27 +14,38 @@ interface ProjectListProps {
 export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListProps) => {
   const navigate = useNavigate();
   const { projects, isLoading } = useProjects();
-  const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject(); // useDeleteProject 사용
+  const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
+  const { mutate: leaveProject, isPending: isLeaving } = useLeaveProjectFromList();
   const user = useAuthStore((state) => state.user);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<{ id: number; name: string } | null>(null);
+  const [selectedProject, setSelectedProject] = useState<{ id: number; name: string; isOwner: boolean } | null>(null);
 
-  const handleDeleteClick = (e: React.MouseEvent, projectId: number, projectName: string) => {
+  const handleActionClick = (e: React.MouseEvent, projectId: number, projectName: string, isOwner: boolean) => {
     e.stopPropagation();
-    setSelectedProject({ id: projectId, name: projectName });
+    setSelectedProject({ id: projectId, name: projectName, isOwner });
     setDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmAction = () => {
     if (selectedProject) {
-      // useDeleteProject는 mutation이므로 mutate 호출
-      deleteProject(selectedProject.id, {
-        onSuccess: () => {
-          setDeleteModalOpen(false);
-          setSelectedProject(null);
-        }
-      });
+      if (selectedProject.isOwner) {
+        // 프로젝트 삭제
+        deleteProject(selectedProject.id, {
+          onSuccess: () => {
+            setDeleteModalOpen(false);
+            setSelectedProject(null);
+          }
+        });
+      } else {
+        // 프로젝트 나가기
+        leaveProject(selectedProject.id, {
+          onSuccess: () => {
+            setDeleteModalOpen(false);
+            setSelectedProject(null);
+          }
+        });
+      }
     }
   };
 
@@ -72,13 +83,21 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
                 {project.name}
               </h3>
 
-              {user?.userId === project.owner_id && (
+              {user?.userId === project.owner_id ? (
                 <button
-                  onClick={(e) => handleDeleteClick(e, project.project_id, project.name)}
+                  onClick={(e) => handleActionClick(e, project.project_id, project.name, true)}
                   className="absolute top-6 right-6 text-gray-300 group-hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
                   title="프로젝트 삭제"
                 >
                   <Trash2 size={24} />
+                </button>
+              ) : (
+                <button
+                  onClick={(e) => handleActionClick(e, project.project_id, project.name, false)}
+                  className="absolute top-6 right-6 text-gray-300 group-hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
+                  title="프로젝트 나가기"
+                >
+                  <LogOut size={24} />
                 </button>
               )}
             </div>
@@ -89,9 +108,10 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
       <DeleteProjectModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
+        onConfirm={handleConfirmAction}
+        isLoading={isDeleting || isLeaving}
         projectName={selectedProject?.name}
+        isDelete={selectedProject?.isOwner ?? true}
       />
     </div>
   );
