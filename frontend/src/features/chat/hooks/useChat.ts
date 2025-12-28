@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { apiClient } from '@/shared/api/client';
 
 export function useChat(projectId: number) {
   const clientRef = useRef<Client | null>(null);
@@ -16,8 +17,20 @@ export function useChat(projectId: number) {
       return;
     }
 
+    // 동적 WebSocket URL 생성
+    const getWebSocketUrl = () => {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = import.meta.env.VITE_API_URL
+        ? import.meta.env.VITE_API_URL.replace(/^https?:\/\//, '').replace(/\/api$/, '')
+        : window.location.host.replace(':5173', ':8080'); // 개발 환경: 5173 → 8080
+      return `${protocol}//${host}/ws`;
+    };
+
+    const wsUrl = getWebSocketUrl();
+    console.log('🔌 Connecting to WebSocket:', wsUrl);
+
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: wsUrl,
       debug: (str) => {
         console.log('STOMP: ' + str);
       },
@@ -100,19 +113,11 @@ export function useChat(projectId: number) {
     if (user && projectId) {
       connect();
 
-      // Fetch initial messages
-      fetch(`/api/chat/room/${projectId}/messages`, {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().token}`,
-        }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch messages');
-          return res.json();
-        })
-        .then(data => {
-          console.log('📜 Initial messages loaded:', data);
-          useChatStore.getState().setMessages(data);
+      // Fetch initial messages using apiClient
+      apiClient.get(`/api/chat/room/${projectId}/messages`)
+        .then(response => {
+          console.log('📜 Initial messages loaded:', response.data);
+          useChatStore.getState().setMessages(response.data);
         })
         .catch(err => console.error('❌ Error fetching messages:', err));
     }
