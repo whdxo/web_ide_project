@@ -58,6 +58,21 @@ public class ProjectService {
         return code;
     }
 
+    public com.editus.backend.domain.project.dto.InvitationInfoResponse getInvitationInfo(String code) {
+        Invitation invitation = invitationRepository.findByCodeAndDeletedFalse(code)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 초대 코드입니다."));
+
+        if (!invitation.isValid()) {
+            throw new IllegalArgumentException("만료되었거나 이미 사용된 초대 코드입니다.");
+        }
+
+        return com.editus.backend.domain.project.dto.InvitationInfoResponse.builder()
+                .projectName(invitation.getProject().getName())
+                .inviterName(invitation.getInviter().getName())
+                .expiresAt(invitation.getExpiresAt())
+                .build();
+    }
+
     @Transactional
     public Project joinProject(String code, Long userId) {
         // Soft delete 적용: 삭제되지 않은 초대 코드만 조회

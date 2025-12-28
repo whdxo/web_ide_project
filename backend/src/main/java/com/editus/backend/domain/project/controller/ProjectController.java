@@ -174,6 +174,18 @@ public class ProjectController {
     }
 
     /**
+     * 초대 코드로 프로젝트 정보 조회 (참여 전 미리보기)
+     * GET /api/projects/invite/{code}
+     */
+    @GetMapping("/projects/invite/{code}")
+    public ResponseEntity<ApiResponse<InvitationInfoResponse>> getInvitationInfo(
+            @PathVariable String code) {
+
+        InvitationInfoResponse info = projectService.getInvitationInfo(code);
+        return ResponseEntity.ok(ApiResponse.success(info));
+    }
+
+    /**
      * 초대 링크로 프로젝트 참여 (팀원용)
      * POST /api/invitations/{code}/join
      */
@@ -211,7 +223,7 @@ public class ProjectController {
                         .name(pm.getUser().getName())
                         .email(pm.getUser().getEmail())
                         .joinedAt(pm.getJoinedAt())
-                        .isOwner(pm.getProject().getOwner().getUserId().equals(pm.getUser().getUserId()))
+                        .role(pm.getRole().name())
                         .build())
                 .collect(Collectors.toList());
 
