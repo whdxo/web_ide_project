@@ -50,9 +50,10 @@ export type CreateInviteCodeResponse = ApiResponse<InviteCodeResponse>;
 
 export interface InvitationInfo {
   project_id: number;
-  name: string;
+  projectName: string;
   description?: string;
-  owner_name: string;
+  inviterName: string;
+  expiresAt: string;
   project_type: 'PERSONAL' | 'TEAM';
 }
 export type InvitationInfoResponse = ApiResponse<InvitationInfo>;

@@ -54,21 +54,7 @@ export function EditorPage() {
   /**
    * Monaco Editor 언어 → Judge0 언어 변환
    */
-  const getExecutionLanguage = (monacoLanguage: string): string => {
-    const languageMap: Record<string, string> = {
-      javascript: 'javascript',
-      typescript: 'typescript',
-      python: 'python',
-      java: 'java',
-      cpp: 'cpp',
-      c: 'c',
-      ruby: 'ruby',
-      go: 'go',
-      rust: 'rust',
-      php: 'php',
-    };
-    return languageMap[monacoLanguage.toLowerCase()] || 'python';
-  };
+
 
   const handleSave = () => {
     const activeFile = openFiles.find((f) => f.id === activeFileId);
