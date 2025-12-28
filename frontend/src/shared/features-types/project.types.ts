@@ -26,11 +26,6 @@ export interface InviteCodeResponse {
   expiresAt: string;
 }
 
-export interface InvitationInfoResponse {
-  projectName: string;
-  inviterName: string;
-  expiresAt: string;
-}
 
 export interface ProjectMember {
   memberId: number;
@@ -50,13 +45,22 @@ export interface AddMemberRequest {
 export type CreateProjectResponse = ApiResponse<Project>;
 export type GetProjectsResponse = ApiResponse<Project[]>;
 
-export interface ProjectJoinResponse {
+export type GetProjectMembersResponse = ApiResponse<ProjectMember[]>;
+export type AddMemberResponse = ApiResponse<ProjectMember>;
+
+export interface ProjectJoinResponseData {
   project: Project;
   success: boolean;
 }
-
-export type GetProjectMembersResponse = ApiResponse<ProjectMember[]>;
-export type AddMemberResponse = ApiResponse<ProjectMember>;
-export type JoinProjectResponse = ApiResponse<ProjectJoinResponse>;
+export type JoinProjectResponse = ApiResponse<ProjectJoinResponseData>;
 export type CreateInviteCodeResponse = ApiResponse<InviteCodeResponse>;
-export type GetInvitationInfoResponse = ApiResponse<InvitationInfoResponse>;
+
+export interface InvitationInfo {
+  project_id: number;
+  projectName: string;
+  description?: string;
+  inviterName: string;
+  expiresAt: string;
+  project_type: 'PERSONAL' | 'TEAM';
+}
+export type InvitationInfoResponse = ApiResponse<InvitationInfo>;

@@ -43,6 +43,20 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.badRequest("입력값이 올바르지 않습니다"));
     }
 
+    @ExceptionHandler(ProjectNotFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> handleProjectNotFoundException(ProjectNotFoundException e) {
+        log.error("프로젝트를 찾을 수 없음: {}", e.getMessage());
+        return ResponseEntity.status(404)
+                .body(ApiResponse.notFound(e.getMessage()));
+    }
+
+    @ExceptionHandler(ProjectAccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Object>> handleProjectAccessDeniedException(ProjectAccessDeniedException e) {
+        log.error("프로젝트 접근 권한 없음: {}", e.getMessage());
+        return ResponseEntity.status(403)
+                .body(ApiResponse.unauthorized(e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGenericException(Exception e) {
         log.error("예상치 못한 오류: {}", e.getMessage(), e);

@@ -2,70 +2,35 @@ package com.editus.backend.domain.project.service;
 
 import com.editus.backend.domain.auth.entity.User;
 import com.editus.backend.domain.auth.repository.UserRepository;
+import com.editus.backend.domain.project.dto.CreateProjectRequest;
+import com.editus.backend.domain.project.dto.ProjectDto;
 import com.editus.backend.domain.project.entity.Invitation;
 import com.editus.backend.domain.project.entity.Project;
 import com.editus.backend.domain.project.entity.ProjectMember;
 import com.editus.backend.domain.project.repository.InvitationRepository;
 import com.editus.backend.domain.project.repository.ProjectMemberRepository;
 import com.editus.backend.domain.project.repository.ProjectRepository;
+import com.editus.backend.global.exception.ProjectAccessDeniedException;
+import com.editus.backend.global.exception.ProjectNotFoundException;
+import com.editus.backend.global.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.editus.backend.domain.project.dto.InvitationInfoResponse;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ProjectService {
-    // ... existing fields ...
 
     private final ProjectRepository projectRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final InvitationRepository invitationRepository;
     private final UserRepository userRepository;
-    private final com.editus.backend.domain.file.repository.FolderRepository folderRepository;
-    private final com.editus.backend.domain.file.repository.IdeFileRepository ideFileRepository;
-    private final com.editus.backend.domain.schedule.repository.TodoRepository todoRepository;
-    private final com.editus.backend.domain.chat.repository.ChatMessageRepository chatMessageRepository;
-
-    @Transactional
-    public Project createProject(String name, String description, Long ownerId) {
-        User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        Project project = Project.builder()
-                .name(name)
-                .description(description)
-                .owner(owner)
-                .build();
-
-        project = projectRepository.save(project);
-
-        // 오너를 프로젝트 멤버 목록에도 추가
-        // 오너를 프로젝트 멤버 목록에도 추가
-        ProjectMember ownerMember = ProjectMember.builder()
-                .project(project)
-                .user(owner)
-                .role(com.editus.backend.domain.project.entity.Role.OWNER)
-                .build();
-        projectMemberRepository.save(ownerMember);
-
-        return project;
-    }
-
-    public List<Project> getProjectsForUser(Long userId) {
-        return projectRepository.findAllProjectsByUserId(userId);
-    }
-
-    public Project getProject(Long projectId) {
-        return projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
-    }
 
     @Transactional
     public String createInvitation(Long projectId, Long requesterId, Integer expiresInHours) {
@@ -76,8 +41,7 @@ public class ProjectService {
             throw new IllegalArgumentException("초대 링크 생성 권한이 없습니다.");
         }
 
-        // UUID 대신 8자리 대문자/숫자 조합 코드 생성
-        String code = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        String code = UUID.randomUUID().toString().replace("-", "");
 
         int validHours = (expiresInHours != null && expiresInHours > 0) ? expiresInHours : 24;
         LocalDateTime expiresAt = LocalDateTime.now().plusHours(validHours);
@@ -92,38 +56,6 @@ public class ProjectService {
 
         invitationRepository.save(invitation);
         return code;
-    }
-
-    @Transactional
-    public void deleteProject(Long projectId, Long ownerId) {
-        Project project = getProject(projectId);
-
-        if (!project.getOwner().getUserId().equals(ownerId)) {
-            throw new IllegalArgumentException("프로젝트 삭제 권한이 없습니다.");
-        }
-
-        // 1. 관련 데이터 삭제 (외래 키 제약 조건 순서대로)
-        // 1-1. To-do 삭제
-        todoRepository.deleteByProjectProjectId(projectId);
-
-        // 1-2. 파일 삭제
-        ideFileRepository.deleteByProjectId(projectId);
-
-        // 1-3. 폴더 삭제
-        folderRepository.deleteByProjectId(projectId);
-
-        // 1-4. 초대 삭제
-        invitationRepository.deleteByProject(project);
-
-        // 1-5. 프로젝트 멤버 삭제
-        projectMemberRepository.deleteByProject(project);
-
-        // 1-6. 채팅 메시지 삭제
-        // 1-6. 채팅 메시지 삭제
-        chatMessageRepository.deleteByRoomId(String.valueOf(projectId));
-
-        // 2. 프로젝트 삭제
-        projectRepository.delete(project);
     }
 
     @Transactional
@@ -142,29 +74,17 @@ public class ProjectService {
         Project project = invitation.getProject();
 
         // Check if already a member or owner
-        if (project.getOwner().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("이미 프로젝트의 멤버입니다 (오너).");
-        }
-
-        if (projectMemberRepository.existsByProject_ProjectIdAndUser_UserId(project.getProjectId(), user.getUserId())) {
+        if (project.getOwner().getUserId().equals(userId) ||
+                projectMemberRepository.existsByProjectAndUser(project, user)) {
             throw new IllegalArgumentException("이미 프로젝트의 멤버입니다.");
         }
 
         ProjectMember member = ProjectMember.builder()
                 .project(project)
                 .user(user)
-                .role(com.editus.backend.domain.project.entity.Role.USER) // 명시적 Role 설정
                 .build();
 
-        try {
-            projectMemberRepository.save(member);
-        } catch (Exception e) {
-            // 상세 에러 로깅
-            System.err.println("ProjectMember Save Error: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("프로젝트 멤버 저장 중 오류가 발생했습니다: " + e.getMessage());
-        }
-
+        projectMemberRepository.save(member);
         invitation.markAsUsed();
 
         return project;
@@ -187,17 +107,6 @@ public class ProjectService {
         return projectMemberRepository.findByProjectIdWithUser(projectId);
     }
 
-    public com.editus.backend.domain.project.dto.InvitationInfoResponse getInvitationInfo(String code) {
-        Invitation invitation = invitationRepository.findValidInvitation(code, LocalDateTime.now())
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않거나 만료된 초대 코드입니다."));
-
-        return com.editus.backend.domain.project.dto.InvitationInfoResponse.builder()
-                .projectName(invitation.getProject().getName())
-                .inviterName(invitation.getInviter().getName())
-                .expiresAt(invitation.getExpiresAt())
-                .build();
-    }
-
     @Transactional
     public void removeMember(Long projectId, Long userIdToRemove, Long requesterId) {
         Project project = projectRepository.findById(projectId)
@@ -217,37 +126,97 @@ public class ProjectService {
         projectMemberRepository.deleteByProjectAndUser(project, userToRemove);
     }
 
+
+    // ==================== 프로젝트 CRUD 기능 ====================
+
+    /**
+     * 사용자별 프로젝트 목록 조회
+     */
+    public List<ProjectDto> getProjectsByUserId(Long userId) {
+        List<Project> projects = projectRepository.findByOwnerUserId(userId);
+        return projects.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 프로젝트 생성 (현재 사용자가 owner)
+     */
     @Transactional
-    public void removeMemberByMemberId(Long projectId, Long memberId, Long requesterId) {
+    public ProjectDto createProject(Long userId, CreateProjectRequest request) {
+        // 사용자 조회
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다"));
+
+        // 프로젝트 생성
+        Project project = Project.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .owner(owner)
+                .build();
+
+        Project savedProject = projectRepository.save(project);
+        return convertToDto(savedProject);
+    }
+
+    /**
+     * 프로젝트 단건 조회 (권한 검증)
+     */
+    public ProjectDto getProjectByIdWithAuth(Long projectId, Long userId) {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ProjectNotFoundException("프로젝트를 찾을 수 없습니다"));
 
-        // 권한 확인: 오너만 삭제 가능
-        // 단, 본인이 스스로 나가는 경우(self-leave)도 있을 수 있으므로 로직 검토 필요.
-        // 여기서는 오너가 타인을 삭제하는 경우 or 본인이 나가는 경우를 분리하거나, 호출부에서 제어.
-        // 요구사항: "일반 사용자는 사용자 초대, 프로젝트 나가기 가능"
-        // 따라서 본인이면 나가기 허용, 오너면 타인 삭제 허용.
+        // 권한 검증
+        validateProjectOwner(project, userId);
 
-        ProjectMember member = projectMemberRepository.findById(memberId)
-                .orElseThrow(() -> new IllegalArgumentException("멤버를 찾을 수 없습니다."));
+        return convertToDto(project);
+    }
 
-        if (!member.getProject().getProjectId().equals(projectId)) {
-            throw new IllegalArgumentException("해당 프로젝트의 멤버가 아닙니다.");
+    /**
+     * 프로젝트 삭제 (권한 검증)
+     */
+    @Transactional
+    public void deleteProjectWithAuth(Long projectId, Long userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ProjectNotFoundException("프로젝트를 찾을 수 없습니다"));
+
+        // 권한 검증
+        validateProjectOwner(project, userId);
+
+        projectRepository.delete(project);
+    }
+
+    /**
+     * 프로젝트 이름 검색 (사용자별 필터링)
+     */
+    public List<ProjectDto> searchProjects(Long userId, String keyword) {
+        List<Project> projects = projectRepository.findByOwnerUserIdAndNameContaining(userId, keyword);
+        return projects.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 권한 검증: 프로젝트 소유자인지 확인
+     */
+    private void validateProjectOwner(Project project, Long userId) {
+        if (!project.getOwner().getUserId().equals(userId)) {
+            throw new ProjectAccessDeniedException("프로젝트에 접근할 권한이 없습니다");
         }
+    }
 
-        boolean isSelf = member.getUser().getUserId().equals(requesterId);
-        boolean isOwner = project.getOwner().getUserId().equals(requesterId);
+    /**
+     * Entity -> DTO 변환
+     */
+    private ProjectDto convertToDto(Project project) {
+        return ProjectDto.builder()
+                .projectId(project.getProjectId())
+                .name(project.getName())
+                .description(project.getDescription())
+                .ownerId(project.getOwner().getUserId())
+                .createdAt(project.getCreatedAt().toString())
+                .build();
 
-        if (!isSelf && !isOwner) {
-            throw new IllegalArgumentException("멤버 삭제 권한이 없습니다.");
-        }
-
-        // 오너는 스스로 나갈(삭제될) 수 없음 -> 프로젝트 삭제를 해야 함.
-        if (project.getOwner().getUserId().equals(member.getUser().getUserId())) {
-            throw new IllegalArgumentException("오너는 프로젝트를 나갈 수 없습니다. 프로젝트를 삭제해주세요.");
-        }
-
-        projectMemberRepository.delete(member);
     }
 
     // 매일 새벽 3시에 만료된 초대 코드 Soft Delete 처리

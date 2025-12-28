@@ -10,10 +10,14 @@ import type {
   JoinProjectRequest,
   JoinProjectResponse,
   CreateInviteCodeResponse,
-  GetInvitationInfoResponse
+  InvitationInfoResponse
 } from '@/shared/features-types/project.types';
 
 export const projectApi = {
+  getInvitationInfo: async (code: string): Promise<InvitationInfoResponse> => {
+    const response = await apiClient.get<InvitationInfoResponse>(`/api/projects/invite/${code}`);
+    return response.data;
+  },
   getProjects: async (): Promise<GetProjectsResponse> => {
     const response = await apiClient.get<GetProjectsResponse>('/api/projects');
     return response.data;
@@ -36,11 +40,6 @@ export const projectApi = {
 
   createInviteCode: async (projectId: number): Promise<CreateInviteCodeResponse> => {
     const response = await apiClient.post<CreateInviteCodeResponse>(`/api/projects/${projectId}/invitations`);
-    return response.data;
-  },
-
-  getInvitationInfo: async (code: string): Promise<GetInvitationInfoResponse> => {
-    const response = await apiClient.get<GetInvitationInfoResponse>(`/api/projects/invitations/${code}`);
     return response.data;
   },
 

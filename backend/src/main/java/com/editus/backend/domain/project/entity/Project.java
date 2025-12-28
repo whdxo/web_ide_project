@@ -3,6 +3,7 @@ package com.editus.backend.domain.project.entity;
 import com.editus.backend.domain.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import jakarta.persistence.Column;
 
 import java.time.LocalDateTime;
 
@@ -34,6 +35,19 @@ public class Project {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "deleted", nullable = false)
+    private boolean deleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void softDelete() {
+        if (!this.deleted) {
+            this.deleted = true;
+            this.deletedAt = LocalDateTime.now();
+        }
+    }
 
     @PrePersist
     protected void onCreate() {
