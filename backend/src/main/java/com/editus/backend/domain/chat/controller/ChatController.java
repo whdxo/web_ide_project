@@ -27,7 +27,9 @@ public class ChatController {
      * WebSocket으로 메시지 전송
      */
     @MessageMapping("/chat/message")
-    public void message(@org.springframework.messaging.handler.annotation.Payload ChatMessage message) {
+    public void message(
+            @org.springframework.messaging.handler.annotation.Payload ChatMessage message,
+            org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
         try {
             System.out.println("=== MESSAGE RECEIVED ===");
             System.out.println("Type: " + message.getType());
@@ -38,12 +40,12 @@ public class ChatController {
 
             // 0. User ID 설정 (DB 저장 필수 값)
             if (message.getUserId() == null) {
-                // 시큐리티 컨텍스트에서 조회 시도
-                org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
-                        .getContext().getAuthentication();
+                // StompHeaderAccessor에서 인증된 사용자 정보 가져오기
+                java.security.Principal principal = headerAccessor.getUser();
 
-                if (auth != null && auth.isAuthenticated() && !auth.getName().equals("anonymousUser")) {
-                    String email = auth.getName(); // JWT에서 email 추출
+                if (principal != null) {
+                    String email = principal.getName(); // JWT에서 추출된 email
+                    System.out.println("Principal found - Email: " + email);
 
                     // email로 User 조회하여 userId 가져오기
                     User user = userRepository.findByEmail(email)
@@ -53,7 +55,7 @@ public class ChatController {
                     System.out.println("User authenticated - Email: " + email + ", UserId: " + user.getUserId());
                 } else {
                     // 인증되지 않은 사용자는 채팅 불가
-                    throw new RuntimeException("인증되지 않은 사용자입니다.");
+                    throw new RuntimeException("인증되지 않은 사용자입니다. Principal is null.");
                 }
             }
 

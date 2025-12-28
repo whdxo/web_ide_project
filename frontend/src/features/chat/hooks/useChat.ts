@@ -89,6 +89,9 @@ export function useChat(projectId: number) {
     clientRef.current.publish({
       destination: '/app/chat/message',
       body: JSON.stringify(chatMessage),
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token}`,
+      },
     });
   }, [projectId, user]);
 
