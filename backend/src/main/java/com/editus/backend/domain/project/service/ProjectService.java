@@ -145,11 +145,27 @@ public class ProjectService {
     // ==================== 프로젝트 CRUD 기능 ====================
 
     /**
-     * 사용자별 프로젝트 목록 조회
+     * 사용자별 프로젝트 목록 조회 (owner + 멤버로 참여한 프로젝트)
      */
     public List<ProjectDto> getProjectsByUserId(Long userId) {
-        List<Project> projects = projectRepository.findByOwnerUserId(userId);
-        return projects.stream()
+        // 1. owner인 프로젝트
+        List<Project> ownedProjects = projectRepository.findByOwnerUserId(userId);
+
+        // 2. 멤버로 참여한 프로젝트
+        List<ProjectMember> memberships = projectMemberRepository.findByUserUserId(userId);
+        List<Project> memberProjects = memberships.stream()
+                .map(ProjectMember::getProject)
+                .collect(Collectors.toList());
+
+        // 3. 합치기 (중복 제거)
+        List<Project> allProjects = new java.util.ArrayList<>(ownedProjects);
+        for (Project project : memberProjects) {
+            if (!allProjects.contains(project)) {
+                allProjects.add(project);
+            }
+        }
+
+        return allProjects.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
