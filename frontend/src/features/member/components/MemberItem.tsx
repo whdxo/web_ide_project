@@ -49,19 +49,19 @@ export function MemberItem({
                 <span className="text-xs text-gray-500 ml-1">(나)</span>
               )}
             </span>
-            {member.isOwner && (
+            {member.role === 'OWNER' && (
               <FaCrown className="text-yellow-400" size={14} />
             )}
           </div>
 
           {/* 역할 배지 - 단순히 팀장/멤버 구분 */}
           <span
-            className={`text-xs px-2 py-0.5 rounded ${member.isOwner
+            className={`text-xs px-2 py-0.5 rounded ${member.role === 'OWNER'
               ? "bg-yellow-500/20 text-yellow-400"
               : "bg-gray-500/20 text-gray-400"
               }`}
           >
-            {member.isOwner ? "팀장" : "멤버"}
+            {member.role === 'OWNER' ? "팀장" : "멤버"}
           </span>
         </div>
       </div>
