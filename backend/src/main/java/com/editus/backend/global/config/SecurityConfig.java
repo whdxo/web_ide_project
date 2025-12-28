@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // WebSocket 채팅 엔드포인트 (인증 불필요)
-                        .requestMatchers("/ws-chat/**", "/app/**", "/topic/**").permitAll()
+                        .requestMatchers("/ws/**", "/app/**", "/topic/**").permitAll()
 
                         // Auth 관련 (인증 불필요)
                         .requestMatchers("/api/auth/login", "/api/auth/health").permitAll()

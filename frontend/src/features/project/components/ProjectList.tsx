@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useProjects } from '../hooks/useProjects';
+import { useProjects, useDeleteProject } from '../hooks/useProjects';
 import { Button } from '@/shared/components/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Trash2 } from 'lucide-react';
+import { DeleteProjectModal } from './DeleteProjectModal';
 
 interface ProjectListProps {
   onOpenCreateModal: () => void;
@@ -11,13 +13,28 @@ interface ProjectListProps {
 
 export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListProps) => {
   const navigate = useNavigate();
-  const { projects, isLoading, deleteProject } = useProjects();
+  const { projects, isLoading } = useProjects();
+  const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject(); // useDeleteProject 사용
   const user = useAuthStore((state) => state.user);
 
-  const handleDelete = (e: React.MouseEvent, projectId: number) => {
-    e.stopPropagation(); // 카드 클릭 이벤트 전파 방지
-    if (window.confirm('정말로 이 프로젝트를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-      deleteProject(projectId);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<{ id: number; name: string } | null>(null);
+
+  const handleDeleteClick = (e: React.MouseEvent, projectId: number, projectName: string) => {
+    e.stopPropagation();
+    setSelectedProject({ id: projectId, name: projectName });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (selectedProject) {
+      // useDeleteProject는 mutation이므로 mutate 호출
+      deleteProject(selectedProject.id, {
+        onSuccess: () => {
+          setDeleteModalOpen(false);
+          setSelectedProject(null);
+        }
+      });
     }
   };
 
@@ -54,10 +71,10 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
               <h3 className="text-3xl font-bold text-gray-900 group-hover:text-white transition-colors duration-300 text-center px-4">
                 {project.name}
               </h3>
-              
+
               {user?.userId === project.owner_id && (
                 <button
-                  onClick={(e) => handleDelete(e, project.project_id)}
+                  onClick={(e) => handleDeleteClick(e, project.project_id, project.name)}
                   className="absolute top-6 right-6 text-gray-300 group-hover:text-white hover:bg-white/20 p-2 rounded-full transition-colors"
                   title="프로젝트 삭제"
                 >
@@ -68,6 +85,14 @@ export const ProjectList = ({ onOpenCreateModal, onOpenJoinModal }: ProjectListP
           ))}
         </div>
       )}
+
+      <DeleteProjectModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+        projectName={selectedProject?.name}
+      />
     </div>
   );
 };

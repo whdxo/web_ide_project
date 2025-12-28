@@ -12,6 +12,8 @@ interface ChatState {
   setMessages: (messages: ChatMessage[]) => void;
   addMessage: (message: ChatMessage) => void;
   clearMessages: () => void;
+  onlineCount: number;
+  setOnlineCount: (count: number) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -36,7 +38,7 @@ export const useChatStore = create<ChatState>((set) => ({
     set((state) => ({
       messages: [...state.messages, message],
     })),
-
   clearMessages: () => set({ messages: [] }),
+  onlineCount: 0,
+  setOnlineCount: (count) => set({ onlineCount: count }),
 }));
-

@@ -1,5 +1,7 @@
 package com.editus.backend.domain.chat.controller;
 
+import com.editus.backend.domain.auth.entity.User;
+import com.editus.backend.domain.auth.repository.UserRepository;
 import com.editus.backend.domain.chat.dto.ChatMessage;
 import com.editus.backend.domain.chat.service.ChatService;
 import com.editus.backend.domain.chat.service.RedisPublisher;
@@ -19,22 +21,73 @@ public class ChatController {
     private final RedisPublisher redisPublisher;
     private final ChannelTopic topic;
     private final ChatService chatService;
+    private final UserRepository userRepository;
 
     /**
      * WebSocket으로 메시지 전송
      */
     @MessageMapping("/chat/message")
-    public void message(ChatMessage message) {
-        // 입장 메시지 처리
-        if (ChatMessage.MessageType.ENTER.equals(message.getType())) {
-            message.setMessage(message.getSender() + "님이 입장하셨습니다.");
+    public void message(
+            @org.springframework.messaging.handler.annotation.Payload ChatMessage message,
+            org.springframework.messaging.simp.stomp.StompHeaderAccessor headerAccessor) {
+        try {
+            System.out.println("=== MESSAGE RECEIVED ===");
+            System.out.println("Type: " + message.getType());
+            System.out.println("RoomId: " + message.getRoomId());
+            System.out.println("Sender: " + message.getSender());
+            System.out.println("Message: " + message.getMessage());
+            System.out.println("========================");
+
+            // 0. User ID 설정 (DB 저장 필수 값)
+            if (message.getUserId() == null) {
+                // StompHeaderAccessor에서 인증된 사용자 정보 가져오기
+                java.security.Principal principal = headerAccessor.getUser();
+
+                if (principal != null) {
+                    String email = principal.getName(); // JWT에서 추출된 email
+                    System.out.println("Principal found - Email: " + email);
+
+                    // email로 User 조회하여 userId 가져오기
+                    User user = userRepository.findByEmail(email)
+                            .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + email));
+
+                    message.setUserId(user.getUserId());
+                    System.out.println("User authenticated - Email: " + email + ", UserId: " + user.getUserId());
+                } else {
+                    // 인증되지 않은 사용자는 채팅 불가
+                    throw new RuntimeException("인증되지 않은 사용자입니다. Principal is null.");
+                }
+            }
+
+            // 입장 메시지 처리
+            if (ChatMessage.MessageType.ENTER.equals(message.getType())) {
+                message.setMessage(message.getSender() + "님이 입장하셨습니다.");
+            }
+
+            // 1. DB에 메시지 저장 (PRESENCE 메시지는 제외)
+            if (!ChatMessage.MessageType.PRESENCE.equals(message.getType())) {
+                try {
+                    ChatMessage savedMessage = chatService.saveMessage(message);
+                    message = savedMessage; // Use saved message with ID and timestamps
+                } catch (Exception dbEx) {
+                    System.err.println("DB Save Failed: " + dbEx.getMessage());
+                    // Continue to broadcast even if DB fails?
+                    // Usually better to fail, but for debugging let's continue or rethrow.
+                    // Re-throwing to see error in client.
+                    throw dbEx;
+                }
+            } else {
+                System.out.println("PRESENCE message - skipping DB save");
+            }
+
+            // 2. Broadcast using Redis (for multi-server support)
+            redisPublisher.publish(topic, message);
+            System.out.println("Message published to Redis topic: " + topic.getTopic() + " for room: " + message.getRoomId());
+
+        } catch (Exception e) {
+            System.err.println("Error processing message: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        // 1. DB에 메시지 저장
-        ChatMessage savedMessage = chatService.saveMessage(message);
-
-        // 2. Redis로 실시간 발행 (모든 서버에 전달)
-        redisPublisher.publish(topic, savedMessage);
     }
 
     // ===== REST API 엔드포인트 =====

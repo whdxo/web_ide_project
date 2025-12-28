@@ -26,10 +26,10 @@ export function MemberList({
     <div className="divide-y divide-gray-800">
       {sortedMembers.map((member) => (
         <MemberItem
-          key={member.member_id}
+          key={member.memberId}
           member={member}
-          isCurrentUser={member.user_id === currentUserId}
-          canDelete={isOwner && member.user_id !== currentUserId}
+          isCurrentUser={member.userId === currentUserId}
+          canDelete={isOwner && member.userId !== currentUserId}
           projectId={projectId}
         />
       ))}

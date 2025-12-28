@@ -1,6 +1,6 @@
 // Chat message types matching backend DTO
 
-export type MessageType = "ENTER" | "TALK" | "QUIT";
+export type MessageType = "ENTER" | "TALK" | "QUIT" | "PRESENCE";
 
 export interface ChatMessage {
   id?: number;
@@ -11,6 +11,7 @@ export interface ChatMessage {
   sentAt?: string;
   isRead?: boolean;
   readAt?: string;
+  userCount?: number;
 }
 
 export interface SendChatMessage {

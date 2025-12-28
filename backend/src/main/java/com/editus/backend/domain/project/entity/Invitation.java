@@ -58,6 +58,6 @@ public class Invitation {
     }
 
     public boolean isValid() {
-        return !used && LocalDateTime.now().isBefore(expiresAt);
+        return !used && !deleted && LocalDateTime.now().isBefore(expiresAt);
     }
 }

@@ -21,15 +21,20 @@ export interface JoinProjectRequest {
 }
 
 export interface InviteCodeResponse {
-  inviteCode: string;
+  code: string;
+  invitationUrl: string;
   expiresAt: string;
 }
 
+
 export interface ProjectMember {
-  member_id: number;
-  project_id: number;
-  user_id: number;
+  memberId: number;
+  projectId: number;
+  userId: number;
   role: 'OWNER' | 'EDITOR' | 'USER';
+  name?: string;
+  email?: string;
+  joinedAt?: string;
 }
 
 export interface AddMemberRequest {
@@ -39,8 +44,10 @@ export interface AddMemberRequest {
 
 export type CreateProjectResponse = ApiResponse<Project>;
 export type GetProjectsResponse = ApiResponse<Project[]>;
+
 export type GetProjectMembersResponse = ApiResponse<ProjectMember[]>;
 export type AddMemberResponse = ApiResponse<ProjectMember>;
+
 export interface ProjectJoinResponseData {
   project: Project;
   success: boolean;
@@ -57,4 +64,3 @@ export interface InvitationInfo {
   project_type: 'PERSONAL' | 'TEAM';
 }
 export type InvitationInfoResponse = ApiResponse<InvitationInfo>;
-

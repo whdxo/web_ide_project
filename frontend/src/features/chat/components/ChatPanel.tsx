@@ -2,20 +2,15 @@ import { useChatStore } from "../store/chatStore";
 import { MessageList } from "./MessageList";
 import { MessageInput } from "./MessageInput";
 import { IoPerson } from "react-icons/io5";
-import { useEffect } from "react";
+import { useChat } from "../hooks/useChat";
 
-export function ChatPanel() {
-  const users = useChatStore((s) => s.users);
+interface ChatPanelProps {
+  projectId: number;
+}
 
-  // ChatPanel.tsx or useEffect
-  useEffect(() => {
-    useChatStore.getState().setUsers([
-      { id: 1, nickname: "팀원A" },
-      { id: 2, nickname: "팀원B" },
-      { id: 3, nickname: "팀원C" },
-    ]);
-  }, []);
-
+export function ChatPanel({ projectId }: ChatPanelProps) {
+  const onlineCount = useChatStore((s) => s.onlineCount);
+  const { sendMessage } = useChat(projectId);
 
   return (
     <div className="flex h-full flex-col">
@@ -25,7 +20,7 @@ export function ChatPanel() {
           <h2 className="text-sm font-semibold">WEB IDE Project</h2>
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <IoPerson size={14} />
-            <span>{users.length}</span>
+            <span>{onlineCount}명 접속 중</span>
           </div>
         </div>
       </div>
@@ -34,7 +29,7 @@ export function ChatPanel() {
       <MessageList />
 
       {/* 입력 */}
-      <MessageInput />
+      <MessageInput onSendMessage={sendMessage} />
     </div>
   );
 }

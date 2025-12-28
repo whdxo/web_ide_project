@@ -1,13 +1,15 @@
 import { useState } from "react";
-import { useChat } from "../hooks/useChat";
 
-export function MessageInput() {
+interface MessageInputProps {
+  onSendMessage: (text: string) => void;
+}
+
+export function MessageInput({ onSendMessage }: MessageInputProps) {
   const [text, setText] = useState("");
-  const { sendMessage } = useChat();
 
   const handleSend = () => {
     if (!text.trim()) return;
-    sendMessage(text);
+    onSendMessage(text);
     setText("");
   };
 
@@ -18,7 +20,7 @@ export function MessageInput() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="메세지를 입력하세요..."
-          className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm outline-none"
+          className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm outline-none text-white"
           onKeyDown={(e) => e.key === "Enter" && handleSend()}
         />
         <button

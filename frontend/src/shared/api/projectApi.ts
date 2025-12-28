@@ -22,33 +22,44 @@ export const projectApi = {
     const response = await apiClient.get<GetProjectsResponse>('/api/projects');
     return response.data;
   },
+
+  getProject: async (projectId: number): Promise<CreateProjectResponse> => {
+    const response = await apiClient.get<CreateProjectResponse>(`/api/projects/${projectId}`);
+    return response.data;
+  },
+
   createProject: async (data: CreateProjectRequest): Promise<CreateProjectResponse> => {
     const response = await apiClient.post<CreateProjectResponse>('/api/projects', data);
     return response.data;
   },
+
   joinProject: async (data: JoinProjectRequest): Promise<JoinProjectResponse> => {
-    const response = await apiClient.post<JoinProjectResponse>('/api/projects/join', data);
+    const response = await apiClient.post<JoinProjectResponse>(`/api/invitations/${data.inviteCode}/join`);
     return response.data;
   },
+
   createInviteCode: async (projectId: number): Promise<CreateInviteCodeResponse> => {
-    const response = await apiClient.post<CreateInviteCodeResponse>(`/api/projects/${projectId}/invite`);
+    const response = await apiClient.post<CreateInviteCodeResponse>(`/api/projects/${projectId}/invitations`);
     return response.data;
   },
+
   getProjectMembers: async (projectId: number): Promise<GetProjectMembersResponse> => {
     const response = await apiClient.get<GetProjectMembersResponse>(`/api/projects/${projectId}/members`);
     return response.data;
   },
+
   addMember: async (projectId: number, data: AddMemberRequest): Promise<AddMemberResponse> => {
     const response = await apiClient.post<AddMemberResponse>(`/api/projects/${projectId}/members`, data);
     return response.data;
   },
+
   removeMember: async (projectId: number, memberId: number): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}/members/${memberId}`);
     return response.data;
   },
+
   deleteProject: async (projectId: number): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}`);
     return response.data;
   }
 };
-
