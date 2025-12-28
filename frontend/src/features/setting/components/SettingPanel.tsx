@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { useMembers, useLeaveProject } from "@/features/member/hooks/useMembers";
-import { useDeleteProject } from "@/features/project/hooks/useProjects";
+import { useMembers } from "@/features/member/hooks/useMembers";
+import { useDeleteProject, useLeaveProjectFromEditor } from "@/features/project/hooks/useProjects";
 import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
 import { DeleteProjectModal } from "@/features/project/components/DeleteProjectModal";
 import { authApi } from "@/shared/api/authApi";
+import { projectApi } from "@/shared/api/projectApi";
+import { useQuery } from "@tanstack/react-query";
 
 interface SettingsPanelProps {
   projectId?: number;
@@ -18,7 +20,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   const authStore = useAuthStore();
   const user = authStore.user;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
   const params = useParams<{ projectId: string }>();
 
@@ -27,8 +29,15 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
 
   // 멤버 정보 가져오기
   const { data: members } = useMembers(projectId);
-  const leaveProjectMutation = useLeaveProject();
+  const leaveProjectMutation = useLeaveProjectFromEditor();
   const deleteProjectMutation = useDeleteProject();
+
+  // 프로젝트 정보 가져오기
+  const { data: projectData } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectApi.getProject(projectId),
+    enabled: !!projectId,
+  });
 
   // 내 멤버 정보
   const myMember = members?.find(m => m.userId === currentUserId);
@@ -47,7 +56,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   };
 
   const handleLeaveProject = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
+    e.stopPropagation();
 
     if (!myMember) {
       alert("멤버 정보를 찾을 수 없습니다");
@@ -59,29 +68,38 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       return;
     }
 
-    if (!confirm("정말 프로젝트를 나가시겠습니까?")) {
-      return;
-    }
 
-    leaveProjectMutation.mutate({
-      projectId,
-      memberId: myMember.userId
-    });
+    setIsActionModalOpen(true);
+
   };
 
   const handleDeleteProject = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
+    e.stopPropagation();
 
     if (!projectId) {
       alert("프로젝트 정보를 찾을 수 없습니다");
       return;
     }
 
-    setIsDeleteModalOpen(true);
+    setIsActionModalOpen(true);
   };
 
-  const onConfirmDelete = () => {
-    deleteProjectMutation.mutate(projectId);
+  const handleConfirmAction = () => {
+    if (isOwner) {
+      // 프로젝트 삭제
+      deleteProjectMutation.mutate(projectId, {
+        onSuccess: () => {
+          setIsActionModalOpen(false);
+        }
+      });
+    } else {
+      // 프로젝트 나가기
+      leaveProjectMutation.mutate(projectId, {
+        onSuccess: () => {
+          setIsActionModalOpen(false);
+        }
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -181,12 +199,14 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
         />
       )}
 
-      {/* 삭제 모달 */}
+      {/* 삭제/나가기 모달 */}
       <DeleteProjectModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={onConfirmDelete}
-        isLoading={deleteProjectMutation.isPending}
+        isOpen={isActionModalOpen}
+        onClose={() => setIsActionModalOpen(false)}
+        onConfirm={handleConfirmAction}
+        isLoading={deleteProjectMutation.isPending || leaveProjectMutation.isPending}
+        projectName={projectData?.data?.name}
+        isDelete={isOwner}
       />
     </div>
   );

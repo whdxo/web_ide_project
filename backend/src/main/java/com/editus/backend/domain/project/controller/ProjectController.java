@@ -245,4 +245,19 @@ public class ProjectController {
 
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    /**
+     * 프로젝트 나가기 (현재 사용자가 프로젝트에서 탈퇴)
+     * POST /api/projects/{projectId}/leave
+     */
+    @PostMapping("/projects/{projectId}/leave")
+    public ResponseEntity<ApiResponse<Void>> leaveProject(
+            @PathVariable Long projectId,
+            Principal principal) {
+
+        User user = getCurrentUser(principal);
+        projectService.leaveProject(projectId, user.getUserId());
+
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

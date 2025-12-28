@@ -141,6 +141,30 @@ public class ProjectService {
         projectMemberRepository.deleteByProjectAndUser(project, userToRemove);
     }
 
+    /**
+     * 프로젝트 나가기 (현재 사용자가 프로젝트에서 탈퇴)
+     */
+    @Transactional
+    public void leaveProject(Long projectId, Long userId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
+
+        // 오너는 프로젝트를 나갈 수 없음
+        if (project.getOwner().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("프로젝트 소유자는 프로젝트를 나갈 수 없습니다. 다른 멤버에게 소유권을 양도하거나 프로젝트를 삭제해주세요.");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 멤버인지 확인
+        if (!projectMemberRepository.existsByProjectAndUser(project, user)) {
+            throw new IllegalArgumentException("프로젝트의 멤버가 아닙니다.");
+        }
+
+        projectMemberRepository.deleteByProjectAndUser(project, user);
+    }
+
 
     // ==================== 프로젝트 CRUD 기능 ====================
 
