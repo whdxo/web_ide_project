@@ -63,6 +63,17 @@ export interface SaveFileResponseData {
   content: string;
 }
 
+// S3 업로드 URL 발급 응답
+export interface UploadUrlResponse {
+  uploadUrl: string;
+  contentKey: string;
+}
+
+// S3 다운로드 URL 발급 응답
+export interface DownloadUrlResponse {
+  downloadUrl: string;
+}
+
 // API 응답 타입들
 export type GetProjectTreeResponse = ProjectTree; // Backend returns TreeResponse directly without ApiResponse wrapper
 export type CreateFolderResponse = FolderDetail; // Backend returns FolderResponse directly without ApiResponse wrapper
