@@ -142,17 +142,29 @@ public class ProjectService {
         Project project = invitation.getProject();
 
         // Check if already a member or owner
-        if (project.getOwner().getUserId().equals(userId) ||
-                projectMemberRepository.existsByProjectAndUser(project, user)) {
+        if (project.getOwner().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("이미 프로젝트의 멤버입니다 (오너).");
+        }
+
+        if (projectMemberRepository.existsByProject_ProjectIdAndUser_UserId(project.getProjectId(), user.getUserId())) {
             throw new IllegalArgumentException("이미 프로젝트의 멤버입니다.");
         }
 
         ProjectMember member = ProjectMember.builder()
                 .project(project)
                 .user(user)
+                .role(com.editus.backend.domain.project.entity.Role.USER) // 명시적 Role 설정
                 .build();
 
-        projectMemberRepository.save(member);
+        try {
+            projectMemberRepository.save(member);
+        } catch (Exception e) {
+            // 상세 에러 로깅
+            System.err.println("ProjectMember Save Error: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("프로젝트 멤버 저장 중 오류가 발생했습니다: " + e.getMessage());
+        }
+
         invitation.markAsUsed();
 
         return project;

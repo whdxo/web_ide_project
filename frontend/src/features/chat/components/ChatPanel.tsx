@@ -9,7 +9,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ projectId }: ChatPanelProps) {
-  const users = useChatStore((s) => s.users);
+  const onlineCount = useChatStore((s) => s.onlineCount);
   const { sendMessage } = useChat(projectId);
 
   return (
@@ -20,7 +20,7 @@ export function ChatPanel({ projectId }: ChatPanelProps) {
           <h2 className="text-sm font-semibold">WEB IDE Project</h2>
           <div className="flex items-center gap-1 text-xs text-gray-400">
             <IoPerson size={14} />
-            <span>{users.length}명 접속 중</span>
+            <span>{onlineCount}명 접속 중</span>
           </div>
         </div>
       </div>

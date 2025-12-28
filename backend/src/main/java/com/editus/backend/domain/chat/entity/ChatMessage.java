@@ -17,13 +17,16 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "chat_room_id", nullable = false)
     private String roomId;
 
     @Column(nullable = false)
     private String sender;
 
-    @Column(nullable = false, length = 1000)
+    @Column(name = "user_id")
+    private Long userId;
+
+    @Column(name = "content", nullable = false, length = 1000)
     private String message;
 
     @Enumerated(EnumType.STRING)
@@ -41,8 +44,12 @@ public class ChatMessage {
     // 읽은 시간
     private LocalDateTime readAt;
 
+    // 현재 접속자 수 (DB 저장 X)
+    @Transient
+    private Long userCount;
+
     public enum MessageType {
-        ENTER, TALK, QUIT
+        ENTER, TALK, QUIT, PRESENCE
     }
 
     @PrePersist

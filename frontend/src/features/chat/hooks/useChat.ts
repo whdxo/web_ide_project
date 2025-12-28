@@ -19,7 +19,7 @@ export function useChat(projectId: number) {
     const client = new Client({
       brokerURL: 'ws://localhost:8080/ws',
       debug: (str) => {
-        console.log('STOMP: ' + str);
+        console.log('STOMP: ' + str); ㄴ
       },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
@@ -31,13 +31,35 @@ export function useChat(projectId: number) {
         console.log('STOMP Connected');
         // Subscribe to room topic
         client.subscribe(`/topic/chat/room/${projectId}`, (message) => {
-          const receivedMessage = JSON.parse(message.body);
-          addMessage(receivedMessage);
+          console.log('🔴 [1] Raw message received:', message);
+
+          try {
+            const receivedMessage = JSON.parse(message.body);
+            console.log('🟡 [2] Parsed data:', receivedMessage);
+            console.log('🟡 [2.1] Message type:', receivedMessage.type);
+
+            if (receivedMessage.type === 'PRESENCE') {
+              console.log('🔵 [3] PRESENCE message - updating count');
+              useChatStore.getState().setOnlineCount(receivedMessage.userCount || 0);
+            } else if (receivedMessage.type === 'TALK' || receivedMessage.type === 'ENTER') {
+              console.log('🟢 [3] TALK/ENTER message - adding to state');
+              console.log('🟢 [3.1] Message content:', receivedMessage);
+              addMessage(receivedMessage);
+              // Check current state after add (next tick effectively)
+              setTimeout(() => {
+                console.log('🟢 [4] Current messages count:', useChatStore.getState().messages.length);
+              }, 100);
+            } else {
+              console.log('⚪ [3] Unknown message type:', receivedMessage.type);
+            }
+          } catch (e) {
+            console.error('❌ Error parsing message:', e);
+          }
         });
       },
       onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
+        console.error('[STOMP] Broker error:', frame.headers['message']);
+        console.error('[STOMP] Details:', frame.body);
       },
     });
 
@@ -63,6 +85,7 @@ export function useChat(projectId: number) {
       // sentAt and other fields are handled by backend or optional
     };
 
+    console.log('[STOMP] Sending message:', chatMessage);
     clientRef.current.publish({
       destination: '/app/chat/message',
       body: JSON.stringify(chatMessage),
@@ -73,6 +96,22 @@ export function useChat(projectId: number) {
     // Only connect if we have valid user and projectId
     if (user && projectId) {
       connect();
+
+      // Fetch initial messages
+      fetch(`/api/chat/room/${projectId}/messages`, {
+        headers: {
+          Authorization: `Bearer ${useAuthStore.getState().token}`,
+        }
+      })
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch messages');
+          return res.json();
+        })
+        .then(data => {
+          console.log('📜 Initial messages loaded:', data);
+          useChatStore.getState().setMessages(data);
+        })
+        .catch(err => console.error('❌ Error fetching messages:', err));
     }
     return () => {
       disconnect();
