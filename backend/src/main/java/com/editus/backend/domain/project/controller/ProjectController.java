@@ -119,10 +119,14 @@ public class ProjectController {
     */
 
     @DeleteMapping("/projects/{projectId}")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponse<Void>> deleteProject(
+            @PathVariable Long projectId,
+            Principal principal) {
         // TODO: 실제 DB 삭제 및 권한 체크 로직
         // 현재는 메모리 리스트에서 제거
-        projects.removeIf(p -> p.getProjectId().equals(projectId));
+        User requester = getCurrentUser(principal);
+        projectService.deleteProject(projectId, requester.getUserId());
+
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
