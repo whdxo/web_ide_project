@@ -18,7 +18,7 @@ public class ProjectMember {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column(name = "member_id")
     private Long memberId;
 
     @ManyToOne(fetch = FetchType.LAZY)
