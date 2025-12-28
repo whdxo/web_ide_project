@@ -65,8 +65,8 @@ public class FileTreeService {
                 .folderId(req.getFolderId())
                 .name(req.getName())
                 .language(language)
-                // content 세팅 금지 (S3-only)
-                // contentKey도 업로드 전이라 null
+                .content("") // DB NOT NULL 제약조건 때문에 빈 문자열로 초기화
+                // contentKey는 업로드 전이라 null
                 .build();
 
         IdeFile saved = ideFileRepository.save(file);

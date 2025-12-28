@@ -4,7 +4,7 @@ interface SidebarProps {
   onMenuClick?: (label: string) => void;
 }
 
-export const Sidebar = ({ userName = '영선', onLogout, onMenuClick }: SidebarProps) => {
+export const Sidebar = ({ userName = '사용자', onLogout, onMenuClick }: SidebarProps) => {
   const handleMenuClick = (label: string) => {
     if (onMenuClick) {
       onMenuClick(label);
