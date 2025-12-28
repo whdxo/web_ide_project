@@ -15,8 +15,8 @@ export function MemberPanel({ projectId, currentUserId }: MemberPanelProps) {
   const { data, isLoading, error } = useMembers(projectId);
 
   // 현재 사용자가 팀장인지 확인
-  const currentUserMember = data?.find((m) => m.user_id === currentUserId);
-  const isOwner = currentUserMember?.role === "OWNER";
+  const currentUserMember = data?.find((m) => m.userId === currentUserId);
+  const isOwner = currentUserMember?.isOwner || false;
 
   if (isLoading) {
     return (

@@ -5,7 +5,7 @@ export type MessageType = "ENTER" | "TALK" | "QUIT" | "PRESENCE";
 export interface ChatMessage {
   id?: number;
   roomId: string;
-  sender: ChatSender;
+  sender: ChatSender | string;
   message: string;
   type: MessageType;
   sentAt?: string;

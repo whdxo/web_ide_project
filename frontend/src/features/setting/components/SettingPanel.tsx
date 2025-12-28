@@ -34,7 +34,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   const myMember = members?.find(m => m.userId === currentUserId);
 
   // 팀장 여부 확인 (OWNER 역할)
-  const isOwner = myMember?.role === "OWNER";
+  const isOwner = myMember?.isOwner;
 
   const handleInvite = () => {
     setIsInviteModalOpen(true);
@@ -54,7 +54,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       return;
     }
 
-    if (myMember.role === "OWNER") {
+    if (myMember.isOwner) {
       alert("팀장은 프로젝트를 나갈 수 없습니다.\n다른 멤버에게 팀장을 양도하거나 프로젝트를 삭제해주세요.");
       return;
     }
@@ -63,9 +63,15 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
       return;
     }
 
-    leaveProjectMutation.mutate({
-      projectId,
-      memberId: myMember.memberId
+    removeMember.mutate(myMember.userId, {
+      onSuccess: () => {
+        alert("프로젝트에서 나갔습니다");
+        navigate("/projects");
+      },
+      onError: (error) => {
+        console.error("프로젝트 나가기 실패:", error);
+        alert("프로젝트 나가기에 실패했습니다");
+      }
     });
   };
 
