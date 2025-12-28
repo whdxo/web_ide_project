@@ -7,6 +7,7 @@ import com.editus.backend.domain.project.dto.ProjectDto;
 import com.editus.backend.domain.project.entity.Invitation;
 import com.editus.backend.domain.project.entity.Project;
 import com.editus.backend.domain.project.entity.ProjectMember;
+import com.editus.backend.domain.project.entity.Role;
 import com.editus.backend.domain.project.repository.InvitationRepository;
 import com.editus.backend.domain.project.repository.ProjectMemberRepository;
 import com.editus.backend.domain.project.repository.ProjectRepository;
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,8 +39,12 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
 
-        if (!project.getOwner().getUserId().equals(requesterId)) {
-            throw new IllegalArgumentException("초대 링크 생성 권한이 없습니다.");
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        Role requesterRole = resolveUserRole(project, requesterId);
+        if (requesterRole != Role.OWNER) {
+            throw new IllegalArgumentException("초대 링크 생성 권한이 없습니다. (OWNER 권한 필요)");
         }
 
         String code = UUID.randomUUID().toString().replace("-", "");
@@ -49,7 +55,7 @@ public class ProjectService {
         Invitation invitation = Invitation.builder()
                 .code(code)
                 .project(project)
-                .inviter(project.getOwner())
+                .inviter(requester)
                 .expiresAt(expiresAt)
                 .used(false)
                 .build();
@@ -148,21 +154,25 @@ public class ProjectService {
     public void leaveProject(Long projectId, Long userId) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트를 찾을 수 없습니다."));
-
-        // 오너는 프로젝트를 나갈 수 없음
-        if (project.getOwner().getUserId().equals(userId)) {
-            throw new IllegalArgumentException("프로젝트 소유자는 프로젝트를 나갈 수 없습니다. 다른 멤버에게 소유권을 양도하거나 프로젝트를 삭제해주세요.");
-        }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 멤버인지 확인
-        if (!projectMemberRepository.existsByProjectAndUser(project, user)) {
+        Role role = resolveUserRole(project, userId);
+        if (role == null) {
             throw new IllegalArgumentException("프로젝트의 멤버가 아닙니다.");
         }
 
-        projectMemberRepository.deleteByProjectAndUser(project, user);
+        if (role == Role.OWNER) {
+            boolean hasOtherMembers = projectMemberRepository.existsByProject_ProjectIdAndUser_UserIdNot(projectId, userId);
+            if (hasOtherMembers) {
+                throw new IllegalArgumentException("프로젝트 소유자는 프로젝트를 나갈 수 없습니다. 다른 멤버에게 소유권을 양도하거나 프로젝트를 삭제해주세요.");
+            }
+
+            projectMemberRepository.deleteByProject(project);
+            projectRepository.delete(project);
+            return;
+        }
+
+        ProjectMember member = projectMemberRepository.findByProject_ProjectIdAndUser_UserId(projectId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("프로젝트의 멤버가 아닙니다."));
+        projectMemberRepository.delete(member);
     }
 
 
@@ -177,6 +187,12 @@ public class ProjectService {
 
         // 2. 멤버로 참여한 프로젝트
         List<ProjectMember> memberships = projectMemberRepository.findByUserUserId(userId);
+        Map<Long, Role> roleByProjectId = memberships.stream()
+                .collect(Collectors.toMap(
+                        member -> member.getProject().getProjectId(),
+                        ProjectMember::getRole,
+                        (existing, replacement) -> existing
+                ));
         List<Project> memberProjects = memberships.stream()
                 .map(ProjectMember::getProject)
                 .collect(Collectors.toList());
@@ -190,7 +206,13 @@ public class ProjectService {
         }
 
         return allProjects.stream()
-                .map(this::convertToDto)
+                .map(project -> {
+                    Role role = roleByProjectId.get(project.getProjectId());
+                    if (role == null && project.getOwner().getUserId().equals(userId)) {
+                        role = Role.OWNER;
+                    }
+                    return convertToDto(project, role);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -211,7 +233,17 @@ public class ProjectService {
                 .build();
 
         Project savedProject = projectRepository.save(project);
-        return convertToDto(savedProject);
+
+        // 프로젝트 생성자를 OWNER 권한의 멤버로 추가
+        ProjectMember ownerMember = ProjectMember.builder()
+                .project(savedProject)
+                .user(owner)
+                .role(Role.OWNER)
+                .joinedAt(LocalDateTime.now())
+                .build();
+        projectMemberRepository.save(ownerMember);
+
+        return convertToDto(savedProject, Role.OWNER);
     }
 
     /**
@@ -221,10 +253,12 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("프로젝트를 찾을 수 없습니다"));
 
-        // 권한 검증
-        validateProjectOwner(project, userId);
+        Role role = resolveUserRole(project, userId);
+        if (role == null) {
+            throw new ProjectAccessDeniedException("프로젝트에 접근할 권한이 없습니다");
+        }
 
-        return convertToDto(project);
+        return convertToDto(project, role);
     }
 
     /**
@@ -235,8 +269,10 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException("프로젝트를 찾을 수 없습니다"));
 
-        // 권한 검증
-        validateProjectOwner(project, userId);
+        Role role = resolveUserRole(project, userId);
+        if (role != Role.OWNER) {
+            throw new ProjectAccessDeniedException("프로젝트 삭제 권한이 없습니다. (OWNER 권한 필요)");
+        }
 
         projectRepository.delete(project);
     }
@@ -247,31 +283,40 @@ public class ProjectService {
     public List<ProjectDto> searchProjects(Long userId, String keyword) {
         List<Project> projects = projectRepository.findByOwnerUserIdAndNameContaining(userId, keyword);
         return projects.stream()
-                .map(this::convertToDto)
+                .map(project -> convertToDto(project, Role.OWNER))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 권한 검증: 프로젝트 소유자인지 확인
-     */
-    private void validateProjectOwner(Project project, Long userId) {
-        if (!project.getOwner().getUserId().equals(userId)) {
-            throw new ProjectAccessDeniedException("프로젝트에 접근할 권한이 없습니다");
-        }
     }
 
     /**
      * Entity -> DTO 변환
      */
-    private ProjectDto convertToDto(Project project) {
+    private ProjectDto convertToDto(Project project, Role currentUserRole) {
+        boolean isOwner = currentUserRole == Role.OWNER;
+        boolean isUser = currentUserRole == Role.USER;
+        boolean canLeave = isUser;
+        if (isOwner) {
+            boolean hasOtherMembers = projectMemberRepository.existsByProject_ProjectIdAndUser_UserIdNot(
+                    project.getProjectId(), project.getOwner().getUserId());
+            canLeave = !hasOtherMembers;
+        }
         return ProjectDto.builder()
                 .projectId(project.getProjectId())
                 .name(project.getName())
                 .description(project.getDescription())
                 .ownerId(project.getOwner().getUserId())
                 .createdAt(project.getCreatedAt().toString())
+                .currentUserRole(currentUserRole != null ? currentUserRole.name() : null)
+                .canDelete(isOwner)
+                .canInvite(isOwner)
+                .canLeave(canLeave)
                 .build();
 
+    }
+
+    private Role resolveUserRole(Project project, Long userId) {
+        return projectMemberRepository.findByProject_ProjectIdAndUser_UserId(project.getProjectId(), userId)
+                .map(ProjectMember::getRole)
+                .orElseGet(() -> project.getOwner().getUserId().equals(userId) ? Role.OWNER : null);
     }
 
     // 매일 새벽 3시에 만료된 초대 코드 Soft Delete 처리

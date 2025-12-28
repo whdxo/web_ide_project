@@ -248,9 +248,9 @@ public class ProjectController {
 
     /**
      * 프로젝트 나가기 (현재 사용자가 프로젝트에서 탈퇴)
-     * POST /api/projects/{projectId}/leave
+     * DELETE /api/projects/{projectId}/leave
      */
-    @PostMapping("/projects/{projectId}/leave")
+    @DeleteMapping("/projects/{projectId}/leave")
     public ResponseEntity<ApiResponse<Void>> leaveProject(
             @PathVariable Long projectId,
             Principal principal) {

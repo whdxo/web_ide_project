@@ -64,7 +64,7 @@ export const projectApi = {
   },
 
   leaveProject: async (projectId: number): Promise<ApiResponse<null>> => {
-    const response = await apiClient.post<ApiResponse<null>>(`/api/projects/${projectId}/leave`);
+    const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}/leave`);
     return response.data;
   }
 };
