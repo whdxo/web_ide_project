@@ -19,7 +19,7 @@ export function useChat(projectId: number) {
     const client = new Client({
       brokerURL: 'ws://localhost:8080/ws',
       debug: (str) => {
-        console.log('STOMP: ' + str); ㄴ
+        console.log('STOMP: ' + str);
       },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,

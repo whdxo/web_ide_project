@@ -2,8 +2,9 @@ package com.editus.backend.domain.chat.controller;
 
 import com.editus.backend.domain.chat.dto.ChatMessage;
 import com.editus.backend.domain.chat.service.ChatService;
-import com.editus.backend.domain.chat.service.ChatService;
+import com.editus.backend.domain.chat.service.RedisPublisher;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -15,13 +16,9 @@ import java.util.List;
 @Controller
 public class ChatController {
 
-    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate; // Inject Template
+    private final RedisPublisher redisPublisher;
+    private final ChannelTopic topic;
     private final ChatService chatService;
-
-    // RedisPublisher is not used directly here for now to isolate issues,
-    // but ChatService might use it? No, ChatService is DB only.
-    // If we want multi-server in future, we need Redis.
-    // For now, let's use Template to fix the "No Response" issue.
 
     /**
      * WebSocket으로 메시지 전송
@@ -73,10 +70,9 @@ public class ChatController {
                 throw dbEx;
             }
 
-            // 2. Broadcast directly using SimpMessagingTemplate
-            String destination = "/topic/chat/room/" + message.getRoomId();
-            messagingTemplate.convertAndSend(destination, message);
-            System.out.println("Message sent to destination: " + destination);
+            // 2. Broadcast using Redis (for multi-server support)
+            redisPublisher.publish(topic, message);
+            System.out.println("Message published to Redis topic: " + topic.getTopic() + " for room: " + message.getRoomId());
 
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
