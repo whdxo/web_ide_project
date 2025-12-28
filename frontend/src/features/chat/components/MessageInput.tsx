@@ -21,7 +21,11 @@ export function MessageInput({ onSendMessage }: MessageInputProps) {
           onChange={(e) => setText(e.target.value)}
           placeholder="메세지를 입력하세요..."
           className="flex-1 rounded bg-gray-700 px-3 py-2 text-sm outline-none text-white"
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+              handleSend();
+            }
+          }}
         />
         <button
           onClick={handleSend}
