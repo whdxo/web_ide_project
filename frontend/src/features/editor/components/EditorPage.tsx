@@ -1,6 +1,6 @@
 import { FileTree } from "../../fileTree/components/FileTree";
 import { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { MonacoEditor } from "./MonacoEditor";
 import { EditorTabs } from "./EditorTabs";
 import {
@@ -24,6 +24,7 @@ import { useSaveFile } from "../hooks/useFileContent";
 import { editorApi } from "@/shared/api/editorApi";
 
 export function EditorPage() {
+  const navigate = useNavigate();
   const location = useLocation();
   const { projectId: projectIdParam } = useParams<{ projectId: string }>();
   const [isFileTreeOpen, setIsFileTreeOpen] = useState(true);
@@ -146,7 +147,12 @@ export function EditorPage() {
     <div className="h-screen bg-[#0f111a] text-gray-100 overflow-hidden flex flex-col">
       {/* header */}
       <header className="fixed top-0 left-0 right-0 h-12 bg-[#181818] border-b border-gray-800 flex items-center px-4 z-50">
-        <h1 className="text-xl font-semibold tracking-wide">EditUs</h1>
+        <h1
+          className="text-xl font-semibold tracking-wide cursor-pointer hover:text-blue-400 transition-colors"
+          onClick={() => navigate('/projects')}
+        >
+          EditUs
+        </h1>
 
         <div className="ml-auto flex items-center gap-3">
           <button
@@ -260,7 +266,7 @@ export function EditorPage() {
         {rightPanel && (
           <aside className="w-80 bg-[#1f1f1f] border-l border-gray-800 flex flex-col">
             <div className="flex-1 overflow-y-auto">
-              {rightPanel === "chat" && <ChatPanel />}
+              {rightPanel === "chat" && <ChatPanel projectId={projectId} />}
               {rightPanel === "todo" && (
                 <>
                   <SprintView />

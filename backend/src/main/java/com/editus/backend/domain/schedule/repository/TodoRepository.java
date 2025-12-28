@@ -30,4 +30,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     // 우선순위별 조회
     List<Todo> findByUserUserIdAndPriority(Long userId, Integer priority);
+
+    // 프로젝트 삭제 시 투두 삭제
+    void deleteByProjectProjectId(Long projectId);
 }

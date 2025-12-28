@@ -8,9 +8,12 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
     List<Folder> findByProjectId(Long projectId);
 
     boolean existsByParentId(Long parentId);
+
     boolean existsByProjectIdAndParentIdAndName(
             Long projectId,
             Long parentId,
-            String name
-    );
+            String name);
+
+    // 프로젝트 삭제 시 폴더 삭제
+    void deleteByProjectId(Long projectId);
 }

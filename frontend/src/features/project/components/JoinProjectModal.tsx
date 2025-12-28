@@ -15,8 +15,29 @@ export const JoinProjectModal = ({ isOpen, onClose }: JoinProjectModalProps) => 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // URL이 입력된 경우 code 파라미터만 추출
+    let code = inviteCode.trim();
+    try {
+      if (code.includes('http://') || code.includes('https://')) {
+        const url = new URL(code);
+        const codeParam = url.searchParams.get('code');
+        if (codeParam) {
+          code = codeParam;
+        }
+      } else if (code.includes('?code=')) {
+        // 상대 경로 URL인 경우 (예: /join?code=xxx)
+        const codeParam = code.split('?code=')[1]?.split('&')[0];
+        if (codeParam) {
+          code = codeParam;
+        }
+      }
+    } catch (err) {
+      // URL 파싱 실패 시 원본 사용
+    }
+
     joinProject.mutate(
-      { inviteCode },
+      { inviteCode: code },
       {
         onSuccess: () => {
           setInviteCode('');

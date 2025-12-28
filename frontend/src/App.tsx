@@ -7,6 +7,8 @@ import { ProjectSelectionPage } from './features/project/components/ProjectSelec
 import { EditorPage } from './features/editor/components/EditorPage';
 import { ProtectedRoute } from './shared/components/ProtectedRoute';
 
+import { InviteJoinPage } from './features/project/components/InviteJoinPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -34,6 +36,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/join" element={<InviteJoinPage />} />
       </Routes>
     </BrowserRouter>
   );

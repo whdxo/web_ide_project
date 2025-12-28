@@ -58,6 +58,21 @@ public class ProjectService {
         return code;
     }
 
+    public com.editus.backend.domain.project.dto.InvitationInfoResponse getInvitationInfo(String code) {
+        Invitation invitation = invitationRepository.findByCodeAndDeletedFalse(code)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 초대 코드입니다."));
+
+        if (!invitation.isValid()) {
+            throw new IllegalArgumentException("만료되었거나 이미 사용된 초대 코드입니다.");
+        }
+
+        return com.editus.backend.domain.project.dto.InvitationInfoResponse.builder()
+                .projectName(invitation.getProject().getName())
+                .inviterName(invitation.getInviter().getName())
+                .expiresAt(invitation.getExpiresAt())
+                .build();
+    }
+
     @Transactional
     public Project joinProject(String code, Long userId) {
         // Soft delete 적용: 삭제되지 않은 초대 코드만 조회
@@ -130,11 +145,27 @@ public class ProjectService {
     // ==================== 프로젝트 CRUD 기능 ====================
 
     /**
-     * 사용자별 프로젝트 목록 조회
+     * 사용자별 프로젝트 목록 조회 (owner + 멤버로 참여한 프로젝트)
      */
     public List<ProjectDto> getProjectsByUserId(Long userId) {
-        List<Project> projects = projectRepository.findByOwnerUserId(userId);
-        return projects.stream()
+        // 1. owner인 프로젝트
+        List<Project> ownedProjects = projectRepository.findByOwnerUserId(userId);
+
+        // 2. 멤버로 참여한 프로젝트
+        List<ProjectMember> memberships = projectMemberRepository.findByUserUserId(userId);
+        List<Project> memberProjects = memberships.stream()
+                .map(ProjectMember::getProject)
+                .collect(Collectors.toList());
+
+        // 3. 합치기 (중복 제거)
+        List<Project> allProjects = new java.util.ArrayList<>(ownedProjects);
+        for (Project project : memberProjects) {
+            if (!allProjects.contains(project)) {
+                allProjects.add(project);
+            }
+        }
+
+        return allProjects.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
