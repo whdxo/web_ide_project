@@ -5,6 +5,7 @@ import { ForgotPasswordPage } from './features/auth/components/ForgotPasswordPag
 import { OAuthCallback } from './features/auth/components/OAuthCallback';
 import { ProjectSelectionPage } from './features/project/components/ProjectSelectionPage';
 import { EditorPage } from './features/editor/components/EditorPage';
+import { ProtectedRoute } from './shared/components/ProtectedRoute';
 
 function App() {
   return (
@@ -15,8 +16,24 @@ function App() {
         <Route path="/signup" element={<SignupForm />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/oauth/callback" element={<OAuthCallback />} />
-        <Route path="/projects" element={<ProjectSelectionPage />} />
-        <Route path="/projects/:projectId/editor" element={<EditorPage />} />
+
+        {/* 보호된 라우트 - 인증 필요 */}
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <ProjectSelectionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects/:projectId/editor"
+          element={
+            <ProtectedRoute>
+              <EditorPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -50,7 +50,7 @@ function deleteNodeRecursive(
       ...node,
       children: node.children
         ? deleteNodeRecursive(node.children, targetId)
-        : undefined,
+        : [],
     }));
 }
 

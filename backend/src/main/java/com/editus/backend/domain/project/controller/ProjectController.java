@@ -6,11 +6,12 @@ import com.editus.backend.domain.project.dto.*;
 import com.editus.backend.domain.project.entity.Project;
 import com.editus.backend.domain.project.entity.ProjectMember;
 import com.editus.backend.domain.project.service.ProjectService;
-import com.editus.backend.domain.file.dto.FileNodeDto;
 import com.editus.backend.global.common.dto.ApiResponse;
+import com.editus.backend.global.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,41 +28,22 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 public class ProjectController {
 
-    // HEAD dependencies
     private final ProjectService projectService;
     private final UserRepository userRepository;
 
-    // Develop dependencies (Mocks)
-    private final List<ProjectDto> projects = new ArrayList<>();
-    private final AtomicLong idGenerator = new AtomicLong(1);
-
-    // Constructor for Mock Data (from Develop)
-    // Note: RequiredArgsConstructor handles final fields.
-    // projectService/userRepository must be injected.
-    // The non-final fields (projects, idGenerator) are initialized inline.
-    // However, existing code had a constructor for mock data init.
-    // Since we are using @RequiredArgsConstructor for DI, we should use
-    // @PostConstruct or inline init block for mocks if possible,
-    // or just checking if list is empty.
-    // Or we can manually remove final from mocks and use @PostConstruct?
-    // Actually, `projects` is final and initialized inline. `idGenerator` too.
-    // But we need to add the default item.
-    // I'll add a @PostConstruct for that.
-
-    @jakarta.annotation.PostConstruct
-    public void initMockData() {
-        if (projects.isEmpty()) {
-            projects.add(ProjectDto.builder()
-                    .projectId(idGenerator.getAndIncrement())
-                    .name("Demo Project")
-                    .description("This is a demo project")
-                    .ownerId(1L)
-                    .createdAt(LocalDateTime.now().toString())
-                    .build());
-        }
+    /**
+     * 현재 로그인한 사용자 ID 조회 (Authentication 기반)
+     */
+    private Long getCurrentUserId(Authentication authentication) {
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다"));
+        return user.getUserId();
     }
 
-    // Helper to get current user
+    /**
+     * 현재 로그인한 사용자 조회 (Principal 기반)
+     */
     private User getCurrentUser(Principal principal) {
         if (principal == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
@@ -71,72 +52,71 @@ public class ProjectController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "사용자 정보를 찾을 수 없습니다."));
     }
 
-    // --- Develop Branch Endpoints (Updated paths to include /projects prefix due
-    // to class level being /api) ---
+    // ==================== 프로젝트 CRUD API ====================
 
+    /**
+     * 프로젝트 목록 조회 (현재 사용자의 프로젝트만)
+     * GET /api/projects
+     */
     @GetMapping("/projects")
-    public ResponseEntity<ApiResponse<List<ProjectDto>>> getProjects() {
-        try {
-            System.out.println("Requesting projects: " + projects);
-            return ResponseEntity.ok(ApiResponse.success(projects));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw e;
-        }
+    public ResponseEntity<ApiResponse<List<ProjectDto>>> getProjects(Authentication authentication) {
+        Long userId = getCurrentUserId(authentication);
+        List<ProjectDto> projects = projectService.getProjectsByUserId(userId);
+        return ResponseEntity.ok(ApiResponse.success(projects));
     }
 
+    /**
+     * 프로젝트 생성 (현재 사용자가 owner)
+     * POST /api/projects
+     */
     @PostMapping("/projects")
-    public ResponseEntity<ApiResponse<ProjectDto>> createProject(@RequestBody CreateProjectRequest request) {
-        ProjectDto newProject = ProjectDto.builder()
-                .projectId(idGenerator.getAndIncrement())
-                .name(request.getName())
-                .description(request.getDescription())
-                .ownerId(1L) // Mock user ID
-                .createdAt(LocalDateTime.now().toString())
-                .projectType(request.getProjectType())
-                .build();
-
-        projects.add(newProject);
+    public ResponseEntity<ApiResponse<ProjectDto>> createProject(
+            @RequestBody CreateProjectRequest request,
+            Authentication authentication) {
+        Long userId = getCurrentUserId(authentication);
+        ProjectDto newProject = projectService.createProject(userId, request);
         return ResponseEntity.ok(ApiResponse.success(newProject));
     }
 
-    // NOTE: 이 엔드포인트는 FileController의 getTree와 중복되어 주석 처리됨
-    // FileController의 /api/projects/{projectId}/tree를 사용할 것
-    /*
-    @GetMapping("/projects/{projectId}/tree")
-    public ResponseEntity<ApiResponse<ProjectTreeResponseDto>> getProjectTree(@PathVariable Long projectId) {
-        List<FileNodeDto> children = new ArrayList<>();
-        children.add(new FileNodeDto(101L, "main.ts", "FILE", null));
-
-        List<FileNodeDto> rootFolders = new ArrayList<>();
-        rootFolders.add(new FileNodeDto(100L, "src", "FOLDER", children));
-        rootFolders.add(new FileNodeDto(102L, "README.md", "FILE", null));
-
-        ProjectTreeResponseDto treeData = new ProjectTreeResponseDto(projectId, "Project " + projectId, rootFolders);
-
-        return ResponseEntity.ok(ApiResponse.success(treeData));
-    }
-    */
-
-    @DeleteMapping("/projects/{projectId}")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {
-        // TODO: 실제 DB 삭제 및 권한 체크 로직
-        // 현재는 메모리 리스트에서 제거
-        projects.removeIf(p -> p.getProjectId().equals(projectId));
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
-
+    /**
+     * 프로젝트 단건 조회 (권한 검증)
+     * GET /api/projects/{projectId}
+     */
     @GetMapping("/projects/{projectId}")
-    public ResponseEntity<ApiResponse<ProjectDto>> getProject(@PathVariable Long projectId) {
-        ProjectDto project = projects.stream()
-                .filter(p -> p.getProjectId().equals(projectId))
-                .findFirst()
-                .orElse(null);
+    public ResponseEntity<ApiResponse<ProjectDto>> getProject(
+            @PathVariable Long projectId,
+            Authentication authentication) {
+        Long userId = getCurrentUserId(authentication);
+        ProjectDto project = projectService.getProjectByIdWithAuth(projectId, userId);
         return ResponseEntity.ok(ApiResponse.success(project));
     }
 
+    /**
+     * 프로젝트 삭제 (권한 검증)
+     * DELETE /api/projects/{projectId}
+     */
+    @DeleteMapping("/projects/{projectId}")
+    public ResponseEntity<ApiResponse<Void>> deleteProject(
+            @PathVariable Long projectId,
+
+            Authentication authentication) {
+        Long userId = getCurrentUserId(authentication);
+        projectService.deleteProjectWithAuth(projectId, userId);
+
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    // ==================== 스프린트 API (추후 구현 예정) ====================
+
+    /**
+     * 프로젝트 스프린트 조회
+     * TODO: 실제 스프린트 관리 기능 구현 필요
+     */
     @GetMapping("/projects/{projectId}/sprints")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getSprints(@PathVariable Long projectId) {
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getSprints(
+            @PathVariable Long projectId,
+            Authentication authentication) {
+        // TODO: 권한 검증 및 실제 스프린트 조회 로직 구현
         List<Map<String, Object>> sprints = new ArrayList<>();
         Map<String, Object> sprint = new HashMap<>();
         sprint.put("sprintId", 1L);
@@ -146,9 +126,16 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(sprints));
     }
 
+    /**
+     * 프로젝트 스프린트 생성
+     * TODO: 실제 스프린트 생성 기능 구현 필요
+     */
     @PostMapping("/projects/{projectId}/sprints")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createSprint(@PathVariable Long projectId,
-            @RequestBody Map<String, Object> request) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> createSprint(
+            @PathVariable Long projectId,
+            @RequestBody Map<String, Object> request,
+            Authentication authentication) {
+        // TODO: 권한 검증 및 실제 스프린트 생성 로직 구현
         Map<String, Object> sprint = new HashMap<>();
         sprint.put("sprintId", 2L);
         sprint.put("name", request.get("name"));
@@ -156,9 +143,12 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(sprint));
     }
 
-    // --- HEAD Branch Endpoints (Real Implementation) - Wrapped in ApiResponse ---
+    // ==================== 초대 및 멤버 관리 API ====================
 
-    // 1. 초대 링크 생성 (리더용)
+    /**
+     * 초대 링크 생성 (프로젝트 소유자용)
+     * POST /api/projects/{projectId}/invitations
+     */
     @PostMapping("/projects/{projectId}/invitations")
     public ResponseEntity<ApiResponse<InvitationResponse>> createInvitation(
             @PathVariable Long projectId,
@@ -183,7 +173,10 @@ public class ProjectController {
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
-    // 2. 초대 링크로 프로젝트 참여 (팀원용)
+    /**
+     * 초대 링크로 프로젝트 참여 (팀원용)
+     * POST /api/invitations/{code}/join
+     */
     @PostMapping("/invitations/{code}/join")
     public ResponseEntity<ApiResponse<ProjectJoinResponse>> joinProject(
             @PathVariable String code,
@@ -200,7 +193,10 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 3. 프로젝트 멤버 목록 조회 (Merged: Real Implementation replaces Mock)
+    /**
+     * 프로젝트 멤버 목록 조회
+     * GET /api/projects/{projectId}/members
+     */
     @GetMapping("/projects/{projectId}/members")
     public ResponseEntity<ApiResponse<List<ProjectMemberResponse>>> getProjectMembers(
             @PathVariable Long projectId,
@@ -222,7 +218,10 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    // 4. 멤버 삭제 (리더용) (Merged: Real Implementation replaces Mock)
+    /**
+     * 멤버 삭제 (프로젝트 소유자용)
+     * DELETE /api/projects/{projectId}/members/{userId}
+     */
     @DeleteMapping("/projects/{projectId}/members/{userId}")
     public ResponseEntity<ApiResponse<Void>> removeMember(
             @PathVariable Long projectId,
@@ -232,8 +231,6 @@ public class ProjectController {
         User requester = getCurrentUser(principal);
         projectService.removeMember(projectId, userId, requester.getUserId());
 
-        return ResponseEntity.ok(ApiResponse.success(null)); // 204 No Content with body is weird, using 200 with null
-                                                             // wrapped or just noContent.
-        // ApiResponse usually implies a body. I'll invoke success(null).
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
