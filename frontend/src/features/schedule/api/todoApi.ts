@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/api';
+import { apiClient } from '@/shared/api/client';
 
 export interface TodoCreateRequest {
   content: string;
@@ -29,62 +29,38 @@ export interface TodoResponse {
   updatedAt: string;
 }
 
+interface TodoApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
 export const todoApi = {
   // 목록 조회
-  async getTodos(params?: { completed?: boolean; dueDate?: string; projectId?: number }) {
-    const query = new URLSearchParams();
-    if (params?.completed !== undefined) {
-      query.append('completed', String(params.completed));
-    }
-    if (params?.dueDate) {
-      query.append('dueDate', params.dueDate);
-    }
-    if (params?.projectId) {
-      query.append('projectId', String(params.projectId));
-    }
-
-    const response = await fetch(`${API_BASE_URL}/todos?${query}`);
-    const data = await response.json();
-    return data.data as TodoResponse[];
+  async getTodos(params?: { completed?: boolean; dueDate?: string; projectId?: number }): Promise<TodoResponse[]> {
+    const response = await apiClient.get<TodoApiResponse<TodoResponse[]>>('/api/todos', { params });
+    return response.data.data;
   },
 
   // 생성
-  async createTodo(request: TodoCreateRequest) {
-    const response = await fetch(`${API_BASE_URL}/todos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
-    const data = await response.json();
-    return data.data as TodoResponse;
+  async createTodo(request: TodoCreateRequest): Promise<TodoResponse> {
+    const response = await apiClient.post<TodoApiResponse<TodoResponse>>('/api/todos', request);
+    return response.data.data;
   },
 
   // 수정
-  async updateTodo(todoId: number, request: TodoUpdateRequest) {
-    const response = await fetch(`${API_BASE_URL}/todos/${todoId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(request),
-    });
-    const data = await response.json();
-    return data.data as TodoResponse;
+  async updateTodo(todoId: number, request: TodoUpdateRequest): Promise<TodoResponse> {
+    const response = await apiClient.put<TodoApiResponse<TodoResponse>>(`/api/todos/${todoId}`, request);
+    return response.data.data;
   },
 
   // 완료 토글
-  async toggleTodo(todoId: number) {
-    const response = await fetch(`${API_BASE_URL}/todos/${todoId}/toggle`, {
-      method: 'PATCH',
-    });
-    const data = await response.json();
-    return data.data as TodoResponse;
+  async toggleTodo(todoId: number): Promise<TodoResponse> {
+    const response = await apiClient.patch<TodoApiResponse<TodoResponse>>(`/api/todos/${todoId}/toggle`);
+    return response.data.data;
   },
 
   // 삭제
-  async deleteTodo(todoId: number) {
-    const response = await fetch(`${API_BASE_URL}/todos/${todoId}`, {
-      method: 'DELETE',
-    });
-    const data = await response.json();
-    return data;
+  async deleteTodo(todoId: number): Promise<void> {
+    await apiClient.delete(`/api/todos/${todoId}`);
   },
 };
