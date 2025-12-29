@@ -35,6 +35,9 @@ public class ProjectController {
      * 현재 로그인한 사용자 ID 조회 (Authentication 기반)
      */
     private Long getCurrentUserId(Authentication authentication) {
+        if (authentication == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         String email = authentication.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다"));

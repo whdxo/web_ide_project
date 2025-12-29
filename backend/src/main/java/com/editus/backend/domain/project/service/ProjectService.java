@@ -160,7 +160,8 @@ public class ProjectService {
         }
 
         if (role == Role.OWNER) {
-            boolean hasOtherMembers = projectMemberRepository.existsByProject_ProjectIdAndUser_UserIdNot(projectId, userId);
+            boolean hasOtherMembers = projectMemberRepository.existsByProject_ProjectIdAndUser_UserIdNot(projectId,
+                    userId);
             if (hasOtherMembers) {
                 throw new IllegalArgumentException("프로젝트 소유자는 프로젝트를 나갈 수 없습니다. 다른 멤버에게 소유권을 양도하거나 프로젝트를 삭제해주세요.");
             }
@@ -174,7 +175,6 @@ public class ProjectService {
                 .orElseThrow(() -> new IllegalArgumentException("프로젝트의 멤버가 아닙니다."));
         projectMemberRepository.delete(member);
     }
-
 
     // ==================== 프로젝트 CRUD 기능 ====================
 
@@ -191,8 +191,7 @@ public class ProjectService {
                 .collect(Collectors.toMap(
                         member -> member.getProject().getProjectId(),
                         ProjectMember::getRole,
-                        (existing, replacement) -> existing
-                ));
+                        (existing, replacement) -> existing));
         List<Project> memberProjects = memberships.stream()
                 .map(ProjectMember::getProject)
                 .collect(Collectors.toList());
@@ -225,21 +224,19 @@ public class ProjectService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다"));
 
-        // 프로젝트 생성
+        // 프로젝트 생성 및 저장 (ID 생성을 위해 선저장)
         Project project = Project.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .owner(owner)
                 .build();
-
         Project savedProject = projectRepository.save(project);
 
-        // 프로젝트 생성자를 OWNER 권한의 멤버로 추가
+        // 오너를 프로젝트 멤버(OWNER 역할)로 추가
         ProjectMember ownerMember = ProjectMember.builder()
                 .project(savedProject)
                 .user(owner)
-                .role(Role.OWNER)
-                .joinedAt(LocalDateTime.now())
+                .role(com.editus.backend.domain.project.entity.Role.OWNER)
                 .build();
         projectMemberRepository.save(ownerMember);
 
