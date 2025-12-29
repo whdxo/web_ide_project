@@ -19,11 +19,17 @@ export function useChat(projectId: number) {
 
     // 동적 WebSocket URL 생성
     const getWebSocketUrl = () => {
+      // 환경 변수에 WebSocket URL이 직접 정의되어 있으면 사용 (production)
+      if (import.meta.env.VITE_WS_URL) {
+        return import.meta.env.VITE_WS_URL;
+      }
+
+      // 없으면 API URL에서 유추 (development)
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = import.meta.env.VITE_API_URL
-        ? import.meta.env.VITE_API_URL.replace(/^https?:\/\//, '').replace(/\/api$/, '')
-        : window.location.host.replace(':5173', ':8080'); // 개발 환경: 5173 → 8080
-      return `${protocol}//${host}/ws`;
+      const host = import.meta.env.VITE_API_BASE_URL
+        ? import.meta.env.VITE_API_BASE_URL.replace(/^https?:\/\//, '').replace(/\/api$/, '')
+        : window.location.host.replace(':5173', ':8080'); // 로컬 개발: 5173 → 8080
+      return `${protocol}//${host}/ws-chat`;
     };
 
     const wsUrl = getWebSocketUrl();
