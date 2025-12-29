@@ -27,14 +27,22 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         log.info("사용자 정보 조회: email={}", authentication.getName());
         UserResponse userResponse = userService.getCurrentUser(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success(userResponse));
     }
 
-    @PutMapping("/me")  // 또는 /{user_id}
+    @PutMapping("/me") // 또는 /{user_id}
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @Valid @RequestBody UserUpdateDto dto, Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         log.info("회원 정보 수정 요청: email={}", authentication.getName());
         UserResponse userResponse = userService.updateUser(authentication.getName(), dto);
         return ResponseEntity.ok(ApiResponse.success(userResponse));
@@ -42,6 +50,10 @@ public class UserController {
 
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<String>> deleteUser(Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         log.info("회원 탈퇴 요청: email={}", authentication.getName());
         userService.deleteUser(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("회원 탈퇴가 완료되었습니다"));
