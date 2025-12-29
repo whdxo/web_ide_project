@@ -101,7 +101,6 @@ public class ProjectController {
     @DeleteMapping("/projects/{projectId}")
     public ResponseEntity<ApiResponse<Void>> deleteProject(
             @PathVariable Long projectId,
-
             Authentication authentication) {
         Long userId = getCurrentUserId(authentication);
         projectService.deleteProjectWithAuth(projectId, userId);
@@ -119,6 +118,10 @@ public class ProjectController {
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getSprints(
             @PathVariable Long projectId,
             Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         // TODO: 권한 검증 및 실제 스프린트 조회 로직 구현
         List<Map<String, Object>> sprints = new ArrayList<>();
         Map<String, Object> sprint = new HashMap<>();
@@ -138,6 +141,10 @@ public class ProjectController {
             @PathVariable Long projectId,
             @RequestBody Map<String, Object> request,
             Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         // TODO: 권한 검증 및 실제 스프린트 생성 로직 구현
         Map<String, Object> sprint = new HashMap<>();
         sprint.put("sprintId", 2L);
