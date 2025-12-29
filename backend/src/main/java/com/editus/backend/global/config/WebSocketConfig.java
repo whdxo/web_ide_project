@@ -19,7 +19,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
+        registry.addEndpoint("/ws-chat")
                 .setAllowedOriginPatterns("*");
     }
 
@@ -55,8 +55,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                             // Create Authentication object
                             Authentication authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                email, null, java.util.Collections.emptyList()
-                            );
+                                    email, null, java.util.Collections.emptyList());
 
                             SecurityContextHolder.getContext().setAuthentication(authentication);
                             accessor.setUser(authentication);
