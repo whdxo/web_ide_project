@@ -230,7 +230,7 @@ public class ProjectService {
                 .description(request.getDescription())
                 .owner(owner)
                 .build();
-        Project savedProject = projectRepository.save(project);
+        Project savedProject = projectRepository.saveAndFlush(project);
 
         // 오너를 프로젝트 멤버(OWNER 역할)로 추가
         ProjectMember ownerMember = ProjectMember.builder()
