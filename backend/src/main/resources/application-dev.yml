@@ -58,7 +58,7 @@ openai:
 
 aws:
   s3:
-    bucket: editus-dev-bucket
+    bucket: editus-frontend-bucket
     region: ap-northeast-2
 
 logging:
