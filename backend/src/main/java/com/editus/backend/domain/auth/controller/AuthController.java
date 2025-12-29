@@ -27,6 +27,9 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<String>> logout(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.ok(ApiResponse.success("이미 로그아웃 상태입니다."));
+        }
         log.info("로그아웃 요청: email={}", authentication.getName());
         authService.logout(authentication.getName());
         return ResponseEntity.ok(ApiResponse.success("로그아웃 되었습니다"));
@@ -42,6 +45,10 @@ public class AuthController {
     @PutMapping("/password")
     public ResponseEntity<ApiResponse<String>> changePassword(
             @Valid @RequestBody PasswordChangeDto dto, Authentication authentication) {
+        if (authentication == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         log.info("비밀번호 변경 요청: email={}", authentication.getName());
         authService.changePassword(authentication.getName(), dto);
         return ResponseEntity.ok(ApiResponse.success("비밀번호가 변경되었습니다"));

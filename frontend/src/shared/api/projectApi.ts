@@ -61,5 +61,10 @@ export const projectApi = {
   deleteProject: async (projectId: number): Promise<ApiResponse<null>> => {
     const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}`);
     return response.data;
+  },
+
+  leaveProject: async (projectId: number): Promise<ApiResponse<null>> => {
+    const response = await apiClient.delete<ApiResponse<null>>(`/api/projects/${projectId}/leave`);
+    return response.data;
   }
 };

@@ -93,14 +93,24 @@ public class CodeExecutionService {
         @SuppressWarnings("unchecked")
         Map<String, Object> status = (Map<String, Object>) result.get("status");
         String statusDesc = status != null ? (String) status.get("description") : "Unknown";
+        Integer statusId = status != null && status.get("id") != null
+                ? Integer.parseInt(status.get("id").toString())
+                : 0;
 
         Double time = result.get("time") != null
                 ? Double.parseDouble(result.get("time").toString())
                 : 0.0;
 
-        Integer exitCode = status != null && status.get("id") != null
-                ? Integer.parseInt(status.get("id").toString())
-                : 0;
+        // "Accepted" (ID 3) 이면 정상 종료(0)로 처리
+        Integer exitCode;
+        if (statusId == 3) {
+            exitCode = 0;
+        } else {
+            // 그 외의 경우 Judge0가 제공하는 exit_code 사용 (없으면 statusId 사용)
+            exitCode = result.get("exit_code") != null
+                    ? Integer.parseInt(result.get("exit_code").toString())
+                    : statusId;
+        }
 
         return CodeExecutionResponse.builder()
                 .output(stdout != null ? stdout : "")
@@ -121,16 +131,16 @@ public class CodeExecutionService {
         Map<String, Integer> languageMap = new HashMap<>();
 
         // 주요 언어
-        languageMap.put("python", 71);        // Python 3.8.1
-        languageMap.put("javascript", 63);    // JavaScript (Node.js 12.14.0)
-        languageMap.put("java", 62);          // Java (OpenJDK 13.0.1)
-        languageMap.put("cpp", 54);           // C++ (GCC 9.2.0)
-        languageMap.put("c", 50);             // C (GCC 9.2.0)
-        languageMap.put("typescript", 74);    // TypeScript (3.7.4)
-        languageMap.put("ruby", 72);          // Ruby (2.7.0)
-        languageMap.put("go", 60);            // Go (1.13.5)
-        languageMap.put("rust", 73);          // Rust (1.40.0)
-        languageMap.put("php", 68);           // PHP (7.4.1)
+        languageMap.put("python", 71); // Python 3.8.1
+        languageMap.put("javascript", 63); // JavaScript (Node.js 12.14.0)
+        languageMap.put("java", 62); // Java (OpenJDK 13.0.1)
+        languageMap.put("cpp", 54); // C++ (GCC 9.2.0)
+        languageMap.put("c", 50); // C (GCC 9.2.0)
+        languageMap.put("typescript", 74); // TypeScript (3.7.4)
+        languageMap.put("ruby", 72); // Ruby (2.7.0)
+        languageMap.put("go", 60); // Go (1.13.5)
+        languageMap.put("rust", 73); // Rust (1.40.0)
+        languageMap.put("php", 68); // PHP (7.4.1)
 
         Integer languageId = languageMap.get(language.toLowerCase());
 

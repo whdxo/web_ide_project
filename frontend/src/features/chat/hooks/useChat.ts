@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { apiClient } from '@/shared/api/client';
 
 export function useChat(projectId: number) {
   const clientRef = useRef<Client | null>(null);
@@ -16,8 +17,26 @@ export function useChat(projectId: number) {
       return;
     }
 
+    // 동적 WebSocket URL 생성
+    const getWebSocketUrl = () => {
+      // 환경 변수에 WebSocket URL이 직접 정의되어 있으면 사용 (production)
+      if (import.meta.env.VITE_WS_URL) {
+        return import.meta.env.VITE_WS_URL;
+      }
+
+      // 없으면 API URL에서 유추 (development)
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = import.meta.env.VITE_API_BASE_URL
+        ? import.meta.env.VITE_API_BASE_URL.replace(/^https?:\/\//, '').replace(/\/api$/, '')
+        : window.location.host.replace(':5173', ':8080'); // 로컬 개발: 5173 → 8080
+      return `${protocol}//${host}/ws-chat`;
+    };
+
+    const wsUrl = getWebSocketUrl();
+    console.log('🔌 Connecting to WebSocket:', wsUrl);
+
     const client = new Client({
-      brokerURL: 'ws://localhost:8080/ws',
+      brokerURL: wsUrl,
       debug: (str) => {
         console.log('STOMP: ' + str);
       },
@@ -100,19 +119,11 @@ export function useChat(projectId: number) {
     if (user && projectId) {
       connect();
 
-      // Fetch initial messages
-      fetch(`/api/chat/room/${projectId}/messages`, {
-        headers: {
-          Authorization: `Bearer ${useAuthStore.getState().token}`,
-        }
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch messages');
-          return res.json();
-        })
-        .then(data => {
-          console.log('📜 Initial messages loaded:', data);
-          useChatStore.getState().setMessages(data);
+      // Fetch initial messages using apiClient
+      apiClient.get(`/api/chat/room/${projectId}/messages`)
+        .then(response => {
+          console.log('📜 Initial messages loaded:', response.data);
+          useChatStore.getState().setMessages(response.data);
         })
         .catch(err => console.error('❌ Error fetching messages:', err));
     }

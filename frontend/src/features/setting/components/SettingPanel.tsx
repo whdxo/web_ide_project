@@ -1,40 +1,43 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/authStore";
-import { useMembers, useLeaveProject } from "@/features/member/hooks/useMembers";
-import { useDeleteProject } from "@/features/project/hooks/useProjects";
+import { useDeleteProject, useLeaveProjectFromEditor } from "@/features/project/hooks/useProjects";
 import { InviteMemberModal } from "@/features/member/components/InviteMemberModal";
 import { DeleteProjectModal } from "@/features/project/components/DeleteProjectModal";
 import { authApi } from "@/shared/api/authApi";
+import { projectApi } from "@/shared/api/projectApi";
+import { useQuery } from "@tanstack/react-query";
 
 interface SettingsPanelProps {
   projectId?: number;
-  currentUserId?: number;
   onOpenPanel?: (panel: "todo") => void;
 }
 
-export function SettingsPanel({ projectId: propProjectId, currentUserId: propCurrentUserId, onOpenPanel }: SettingsPanelProps) {
+export function SettingsPanel({ projectId: propProjectId, onOpenPanel }: SettingsPanelProps) {
   const navigate = useNavigate();
   const authStore = useAuthStore();
   const user = authStore.user;
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [actionType, setActionType] = useState<'delete' | 'leave' | null>(null);
 
   const params = useParams<{ projectId: string }>();
 
   const projectId = propProjectId || Number(params.projectId) || 0;
-  const currentUserId = propCurrentUserId || user?.userId || 0;
 
-  // 멤버 정보 가져오기
-  const { data: members } = useMembers(projectId);
-  const leaveProjectMutation = useLeaveProject();
+  const leaveProjectMutation = useLeaveProjectFromEditor();
   const deleteProjectMutation = useDeleteProject();
 
-  // 내 멤버 정보
-  const myMember = members?.find(m => m.userId === currentUserId);
+  // 프로젝트 정보 가져오기
+  const { data: projectData } = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: () => projectApi.getProject(projectId),
+    enabled: !!projectId,
+  });
 
-  // 팀장 여부 확인 (OWNER 역할)
-  const isOwner = myMember?.role === "OWNER";
+  const canDelete = projectData?.data?.can_delete ?? false;
+  const canLeave = projectData?.data?.can_leave ?? false;
+  const canInvite = projectData?.data?.can_invite ?? false;
 
   const handleInvite = () => {
     setIsInviteModalOpen(true);
@@ -47,41 +50,52 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
   };
 
   const handleLeaveProject = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
+    e.stopPropagation();
 
-    if (!myMember) {
-      alert("멤버 정보를 찾을 수 없습니다");
+    if (!canLeave) {
+      alert("프로젝트 나가기 권한이 없습니다.");
       return;
     }
 
-    if (myMember.role === "OWNER") {
-      alert("팀장은 프로젝트를 나갈 수 없습니다.\n다른 멤버에게 팀장을 양도하거나 프로젝트를 삭제해주세요.");
-      return;
-    }
 
-    if (!confirm("정말 프로젝트를 나가시겠습니까?")) {
-      return;
-    }
+    setActionType('leave');
+    setIsActionModalOpen(true);
 
-    leaveProjectMutation.mutate({
-      projectId,
-      memberId: myMember.memberId
-    });
   };
 
   const handleDeleteProject = (e: React.MouseEvent) => {
-    e.stopPropagation(); // 이벤트 버블링 방지
+    e.stopPropagation();
 
     if (!projectId) {
       alert("프로젝트 정보를 찾을 수 없습니다");
       return;
     }
 
-    setIsDeleteModalOpen(true);
+    if (!canDelete) {
+      alert("프로젝트 삭제 권한이 없습니다.");
+      return;
+    }
+
+    setActionType('delete');
+    setIsActionModalOpen(true);
   };
 
-  const onConfirmDelete = () => {
-    deleteProjectMutation.mutate(projectId);
+  const handleConfirmAction = () => {
+    if (actionType === 'delete') {
+      deleteProjectMutation.mutate(projectId, {
+        onSuccess: () => {
+          setIsActionModalOpen(false);
+          setActionType(null);
+        }
+      });
+    } else if (actionType === 'leave') {
+      leaveProjectMutation.mutate(projectId, {
+        onSuccess: () => {
+          setIsActionModalOpen(false);
+          setActionType(null);
+        }
+      });
+    }
   };
 
   const handleLogout = async () => {
@@ -125,7 +139,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
         {/* 메뉴 영역 */}
         <div className="mt-14 flex flex-col gap-4 text-xs text-gray-300">
           {/* 프로젝트 나가기 - 팀장 제외 */}
-          {!isOwner && (
+          {canLeave && (
             <button
               onClick={handleLeaveProject}
               className="hover:text-white"
@@ -135,7 +149,7 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
           )}
 
           {/* 프로젝트 삭제 - 팀장만 */}
-          {isOwner && (
+          {canDelete && (
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -149,12 +163,14 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
             </button>
           )}
 
-          <button
-            onClick={handleInvite}
-            className="hover:text-white"
-          >
-            프로젝트 초대하기
-          </button>
+          {canInvite && (
+            <button
+              onClick={handleInvite}
+              className="hover:text-white"
+            >
+              프로젝트 초대하기
+            </button>
+          )}
 
           <button
             onClick={handleSchedule}
@@ -181,12 +197,17 @@ export function SettingsPanel({ projectId: propProjectId, currentUserId: propCur
         />
       )}
 
-      {/* 삭제 모달 */}
+      {/* 삭제/나가기 모달 */}
       <DeleteProjectModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={onConfirmDelete}
-        isLoading={deleteProjectMutation.isPending}
+        isOpen={isActionModalOpen}
+        onClose={() => {
+          setIsActionModalOpen(false);
+          setActionType(null);
+        }}
+        onConfirm={handleConfirmAction}
+        isLoading={deleteProjectMutation.isPending || leaveProjectMutation.isPending}
+        projectName={projectData?.data?.name}
+        isDelete={actionType === 'delete'}
       />
     </div>
   );

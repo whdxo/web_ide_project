@@ -7,6 +7,10 @@ export interface Project {
   owner_id: number;
   created_at: string;
   project_type: 'PERSONAL' | 'TEAM';
+  current_user_role?: 'OWNER' | 'USER';
+  can_delete?: boolean;
+  can_invite?: boolean;
+  can_leave?: boolean;
 }
 
 export interface CreateProjectRequest {
@@ -28,13 +32,11 @@ export interface InviteCodeResponse {
 
 
 export interface ProjectMember {
-  memberId: number;
-  projectId: number;
   userId: number;
-  role: 'OWNER' | 'EDITOR' | 'USER';
-  name?: string;
-  email?: string;
+  name: string;
+  email: string;
   joinedAt?: string;
+  role: 'OWNER' | 'EDITOR' | 'USER';
 }
 
 export interface AddMemberRequest {

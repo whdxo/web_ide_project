@@ -8,6 +8,7 @@ interface DeleteProjectModalProps {
     onConfirm: () => void;
     isLoading: boolean;
     projectName?: string; // 프로젝트명 표시용
+    isDelete?: boolean; // true=삭제, false=나가기
 }
 
 export function DeleteProjectModal({
@@ -15,7 +16,8 @@ export function DeleteProjectModal({
     onClose,
     onConfirm,
     isLoading,
-    projectName
+    projectName,
+    isDelete = true
 }: DeleteProjectModalProps) {
     const [step, setStep] = useState<1 | 2>(1);
 
@@ -58,24 +60,33 @@ export function DeleteProjectModal({
 
                     {step === 1 ? (
                         <>
-                            <h3 className="text-xl font-bold text-white">프로젝트 삭제</h3>
+                            <h3 className="text-xl font-bold text-white">
+                                {isDelete ? '프로젝트 삭제' : '프로젝트 나가기'}
+                            </h3>
                             <div className="text-gray-400 space-y-2 text-sm">
                                 <p>
-                                    {projectName ? `"${projectName}" 프로젝트를` : '프로젝트를'} 삭제하시겠습니까?
+                                    {projectName ? `"${projectName}" 프로젝트를` : '프로젝트를'} {isDelete ? '삭제하시겠습니까?' : '나가시겠습니까?'}
                                 </p>
-                                <p className="text-red-400">
-                                    모든 파일, 코드, 채팅 내역이 영구적으로 삭제됩니다.<br />
-                                    이 작업은 되돌릴 수 없습니다.
-                                </p>
+                                {isDelete ? (
+                                    <p className="text-red-400">
+                                        모든 파일, 코드, 채팅 내역이 영구적으로 삭제됩니다.<br />
+                                        이 작업은 되돌릴 수 없습니다.
+                                    </p>
+                                ) : (
+                                    <p className="text-yellow-400">
+                                        프로젝트에서 나가면 더 이상 프로젝트에 접근할 수 없습니다.<br />
+                                        초대 링크로 다시 참여할 수 있습니다.
+                                    </p>
+                                )}
                             </div>
                         </>
                     ) : (
                         <>
                             <h3 className="text-xl font-bold text-red-500">최종 확인</h3>
                             <div className="text-gray-400 space-y-2 text-sm">
-                                <p>정말로 삭제하시겠습니까?</p>
+                                <p>정말로 {isDelete ? '삭제' : '나가기'}하시겠습니까?</p>
                                 <p className="text-red-400 font-medium">
-                                    삭제된 데이터는 복구할 수 없습니다.
+                                    {isDelete ? '삭제된 데이터는 복구할 수 없습니다.' : '나간 후에는 초대 링크로만 다시 참여할 수 있습니다.'}
                                 </p>
                             </div>
                         </>
@@ -98,7 +109,7 @@ export function DeleteProjectModal({
                             className="flex-1 bg-red-600 hover:bg-red-700 text-white border-0"
                             disabled={isLoading}
                         >
-                            삭제 계속
+                            {isDelete ? '삭제 계속' : '나가기 계속'}
                         </Button>
                     ) : (
                         <Button
@@ -106,7 +117,7 @@ export function DeleteProjectModal({
                             className="flex-1 bg-red-600 hover:bg-red-700 text-white border-0"
                             disabled={isLoading}
                         >
-                            {isLoading ? '삭제 중...' : '확인 및 삭제'}
+                            {isLoading ? (isDelete ? '삭제 중...' : '나가는 중...') : (isDelete ? '확인 및 삭제' : '확인 및 나가기')}
                         </Button>
                     )}
                 </div>

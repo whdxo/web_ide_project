@@ -6,7 +6,7 @@ import { authApi } from '@/shared/api/authApi';
 export const OAuthCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const setAuth = useAuthStore((state) => state.setAuth);
+  const { setAuth, setTokens } = useAuthStore();
 
   useEffect(() => {
     const accessToken = searchParams.get('accessToken');
@@ -23,11 +23,10 @@ export const OAuthCallback = () => {
     if (accessToken && refreshToken) {
       const handleLogin = async () => {
         try {
-          // 토큰 임시 저장 (API 호출을 위해)
-          localStorage.setItem('token', accessToken);
-          localStorage.setItem('refreshToken', refreshToken);
+          // 1. 토큰 먼저 저장 (API 호출 시 interceptor에서 사용)
+          setTokens(accessToken, refreshToken);
 
-          // 사용자 정보 조회
+          // 2. 사용자 정보 조회
           const response = await authApi.me();
 
           if (response.data) {

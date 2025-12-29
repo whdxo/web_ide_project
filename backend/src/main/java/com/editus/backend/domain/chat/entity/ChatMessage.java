@@ -17,7 +17,7 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "chat_room_id", nullable = false)
+    @Column(name = "room_id", nullable = false)
     private String roomId;
 
     @Column(nullable = false)
@@ -26,7 +26,7 @@ public class ChatMessage {
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "content", nullable = false, length = 1000)
+    @Column(name = "message", nullable = false, length = 1000)
     private String message;
 
     @Enumerated(EnumType.STRING)

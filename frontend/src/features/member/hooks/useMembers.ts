@@ -53,8 +53,7 @@ export const useLeaveProject = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: ({ projectId, memberId }: { projectId: number; memberId: number }) =>
-      projectApi.removeMember(projectId, memberId),
+    mutationFn: (projectId: number) => projectApi.leaveProject(projectId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       alert("프로젝트에서 나갔습니다");

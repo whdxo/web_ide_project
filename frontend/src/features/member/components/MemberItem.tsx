@@ -25,54 +25,43 @@ export function MemberItem({
     if (!confirm("정말 이 멤버를 삭제하시겠습니까?")) return;
 
     setIsDeleting(true);
-    setIsDeleting(true);
-    removeMember.mutate(member.memberId, {
+    removeMember.mutate(member.userId, {
       onSettled: () => setIsDeleting(false),
     });
   };
 
-  // 역할별 배지 색상
-  const roleColor = {
-    OWNER: "bg-yellow-500/20 text-yellow-400",
-    EDITOR: "bg-blue-500/20 text-blue-400",
-    USER: "bg-gray-500/20 text-gray-400",
-  };
 
-  // 역할 한글 이름
-  const roleLabel = {
-    OWNER: "팀장",
-    EDITOR: "편집자",
-    USER: "멤버",
-  };
 
   return (
     <div className="group flex items-center justify-between p-3 hover:bg-gray-800/50">
       <div className="flex items-center gap-3">
         {/* 아바타 */}
         <div className="w-8 h-8 rounded-full bg-gradient-to-br bg-[#5363EE] flex items-center justify-center text-white font-semibold text-sm">
-          {member.userId.toString().slice(0, 2)}
+          {member.name.slice(0, 1)}
         </div>
 
         <div>
           {/* 사용자 이름 */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-200">
-              {member.name || member.email || `User ${member.userId}`}
+              {member.name}
               {isCurrentUser && (
                 <span className="text-xs text-gray-500 ml-1">(나)</span>
               )}
             </span>
-            {member.role === "OWNER" && (
+            {member.role === 'OWNER' && (
               <FaCrown className="text-yellow-400" size={14} />
             )}
           </div>
 
-          {/* 역할 배지 */}
+          {/* 역할 배지 - 단순히 팀장/멤버 구분 */}
           <span
-            className={`text-xs px-2 py-0.5 rounded ${roleColor[member.role]
+            className={`text-xs px-2 py-0.5 rounded ${member.role === 'OWNER'
+              ? "bg-yellow-500/20 text-yellow-400"
+              : "bg-gray-500/20 text-gray-400"
               }`}
           >
-            {roleLabel[member.role]}
+            {member.role === 'OWNER' ? "팀장" : "멤버"}
           </span>
         </div>
       </div>
