@@ -15,7 +15,7 @@
 
 ## 📖 프로젝트 소개
 
-**EditUs**는 브라우저 환경에서 코드 작성, 파일 관리, 실시간 협업, 일정 관리까지 가능한 **웹 기반 통합 개발 환경(Web IDE)**입니다.
+**EditUs**는 브라우저 환경에서 코드 작성, 파일 관리, 팀 채팅, 일정 관리 기능을 제공하는 **웹 기반 통합 개발 환경(Web IDE)**입니다.
 설치 없이 바로 사용할 수 있는 개발 환경을 제공하여, 어디서든 팀과 함께 프로젝트를 진행할 수 있습니다.
 
 ### 개발 기간
@@ -38,10 +38,10 @@
 ### 💻 웹 기반 IDE
 - 🌍 **9개 프로그래밍 언어 지원**
   - JavaScript, Python, Java, C++, C, Go, Rust, Ruby, PHP
-- ⚡ **실시간 코드 실행**
+- ⚡ **코드 실행**
   - Judge0 API 기반 안전한 샌드박스 환경
 - 📝 **Monaco Editor 통합**
-  - VS Code와 동일한 편집 경험
+  - VS Code 기반 편집 인터페이스
   - 문법 하이라이팅 & 자동완성
 - 📁 **파일 시스템 관리**
   - 폴더/파일 생성, 수정, 삭제
@@ -60,7 +60,8 @@
 - 🔄 **자동 저장**
   - 코드 작업 중 자동으로 저장
 - 👤 **멤버 관리**
-  - 역할 기반 권한 제어 (Owner, Editor, User)
+  - 프로젝트 소유자와 일반 멤버 구분
+  - 소유자 전용 초대, 멤버 삭제, 프로젝트 삭제
 
 </td>
 </tr>
@@ -71,12 +72,9 @@
 - ✅ **투두리스트**
   - 개인 작업 목록 추적
   - 상태별 필터링
-- 🎯 **스프린트 보드**
-  - 애자일 방식의 작업 관리
-  - 담당자 및 기간 설정
-- 📌 **태스크 보드**
-  - 칸반 스타일 작업 관리
-  - ToDo / In Progress / Done
+- 🧪 **Task/Sprint 프로토타입**
+  - 프론트엔드 화면 및 상태 관리 구조 구성
+  - 백엔드 CRUD와 사용자 인증 연동은 향후 과제
 
 </td>
 <td width="50%">
@@ -97,12 +95,13 @@
 
 ### 🔐 보안 & 인증
 - 🔑 **JWT 인증**
-  - 안전한 토큰 기반 인증
-  - Refresh Token 자동 갱신
+  - Access Token 기반 사용자 식별
+  - Redis 기반 Refresh Token 저장 및 재발급 API
 - 🎫 **카카오 소셜 로그인**
   - 간편한 OAuth2 인증
 - 🛡️ **Spring Security**
-  - 엔터프라이즈급 보안
+  - JWT 필터와 OAuth2 로그인 구성
+  - 현재 개발 설정은 일부 API 접근 정책 보완 필요
 
 </td>
 <td width="50%">
@@ -169,7 +168,7 @@
 <td width="25%" align="center">
 <img src="화면 캡쳐/사이드 일정관리.png" alt="일정 관리" height="300"/>
 <br/><b>일정 관리</b>
-<br/>투두리스트 및 스프린트 관리
+<br/>투두리스트와 Task/Sprint 프로토타입
 </td>
 <td width="25%" align="center">
 <img src="화면 캡쳐/사이드 ai 리뷰.png" alt="AI 리뷰" height="300"/>
@@ -202,7 +201,7 @@
 | **State Management** | Zustand, TanStack Query (React Query) |
 | **Routing** | React Router v7 |
 | **HTTP Client** | Axios |
-| **Real-time** | WebSocket (STOMP, SockJS) |
+| **Real-time** | WebSocket (STOMP) |
 
 </td>
 <td width="50%" valign="top">
@@ -210,11 +209,11 @@
 ### ⚙️ Backend
 | 분류 | 기술 스택 |
 |------|----------|
-| **Framework** | Spring Boot 3.x |
+| **Framework** | Spring Boot 4.0 |
 | **Language** | Java 17 |
 | **Build Tool** | Gradle |
 | **Database** | MySQL 8.0 |
-| **Cache** | Redis |
+| **Redis** | Pub/Sub, Refresh Token 저장 |
 | **Security** | Spring Security, JWT |
 | **Real-time** | Spring WebSocket (STOMP) |
 | **Code Execution** | Judge0 API |
@@ -229,9 +228,8 @@
 | 분류 | 기술 스택 |
 |------|----------|
 | **Container** | Docker, Docker Compose |
-| **CI/CD** | Jenkins |
-| **Cloud** | AWS EC2, AWS S3 |
-| **Reverse Proxy** | Nginx |
+| **CI/CD 환경** | Jenkins 컨테이너 구성 |
+| **Cloud 연동** | AWS S3 Presigned URL |
 
 </td>
 <td width="50%" valign="top">
@@ -287,7 +285,8 @@
         │             │
 ┌───────▼─────┐ ┌────▼─────┐
 │    MySQL    │ │   Redis  │
-│   Database  │ │  Cache   │
+│   Database  │ │Pub/Sub & │
+│             │ │  Token   │
 └─────────────┘ └──────────┘
 ```
 
@@ -296,15 +295,17 @@
 ## 🎯 주요 기능 설명
 
 ### 1. 회원 인증 시스템
-- **Spring Security + JWT**: 안전한 토큰 기반 인증
+- **Spring Security + JWT**: Access Token 검증 및 사용자 식별
 - **카카오 OAuth2**: 소셜 로그인 지원
-- **Refresh Token**: Redis 기반 토큰 갱신으로 보안 강화
-- **자동 로그인**: localStorage를 통한 세션 유지
+- **Refresh Token**: Redis 저장, TTL 기반 만료 및 토큰 재발급 API
+- **세션 복원**: Zustand persist와 localStorage를 통한 로그인 상태 유지
+- **현재 제한사항**: 401 응답 시 Refresh Token을 이용한 자동 재발급은 미구현
+- **현재 제한사항**: 개발 설정의 전역 API 접근 정책은 운영 전 인증 필수 정책으로 전환 필요
 
 ### 2. 파일 시스템 관리
 - **계층형 구조**: MySQL 기반 폴더/파일 트리 구조
-- **실시간 동기화**: 파일 생성/수정/삭제 시 즉시 반영
-- **자동 저장**: Debounce를 활용한 효율적인 자동 저장
+- **화면 상태 갱신**: 파일 생성/수정/삭제 API 응답을 파일 트리에 반영
+- **자동 저장**: 일정 주기로 활성 파일의 변경 내용을 저장
 - **언어 감지**: 파일 확장자 기반 자동 언어 인식
 
 ### 3. 코드 실행 엔진
@@ -314,9 +315,10 @@
 
 ### 4. 실시간 채팅
 - **WebSocket STOMP**: 양방향 실시간 통신
-- **Redis Pub/Sub**: 메시지 브로드캐스팅 및 확장성 확보
+- **Redis Pub/Sub**: 서버에서 수신한 메시지를 채팅방 구독자에게 브로드캐스트
 - **채팅 기록**: MySQL에 메시지 저장 및 조회
 - **접속자 수**: 실시간 프로젝트 참여 인원 표시
+- **현재 제한사항**: 채팅방 구독·전송 시 프로젝트 멤버 권한 검증 보완 필요
 
 ### 5. AI 코드 리뷰
 - **OpenAI API**: GPT 모델을 활용한 코드 분석
@@ -324,10 +326,9 @@
 - **리뷰 기록**: AI 리뷰 결과 저장 및 히스토리 관리
 
 ### 6. 일정 관리 시스템
-- **개인 Todo**: 개인별 작업 목록 관리
-- **팀 Task**: 칸반 보드 스타일의 협업 작업 관리
-- **Sprint**: 애자일 방식의 스프린트 단위 일정 관리
-- **상태 관리**: ToDo / In Progress / Done 상태별 필터링
+- **Todo CRUD**: 생성, 조회, 수정, 완료 토글, 삭제 API 구현
+- **현재 제한사항**: Todo 사용자 ID가 임시 값으로 고정되어 있어 JWT 사용자 연동 필요
+- **Task/Sprint**: 프론트엔드 프로토타입 단계이며 백엔드 기능은 미완성
 
 ---
 
@@ -402,13 +403,9 @@ npm run dev
 
 ---
 
-## 🧪 테스트 결과
+## 🧪 검증 현황
 
-<div align="center">
-
-**모든 핵심 기능 테스트 통과 ✅**
-
-</div>
+현재 저장소에는 자동화 테스트 코드가 포함되어 있지 않습니다. 아래 항목은 프로젝트 문서와 구현 코드를 기준으로 정리한 기능 범위이며, 운영 수준의 품질을 보장하는 테스트 결과를 의미하지 않습니다.
 
 <table>
 <tr>
@@ -448,10 +445,10 @@ npm run dev
 <td width="33%">
 
 **👥 협업 기능**
-- ✅ 실시간 채팅
-- ✅ 프로젝트 초대
-- ✅ 멤버 관리
-- ✅ 권한 제어
+- ✅ STOMP 기반 채팅 송수신
+- ✅ 프로젝트 초대 및 멤버 관리
+- ⚠️ 소유자 전용 기능 권한 검증
+- ⚠️ 채팅방 멤버 권한 검증 필요
 
 </td>
 <td width="33%">
@@ -460,16 +457,18 @@ npm run dev
 - ✅ 이메일 회원가입
 - ✅ 로그인/로그아웃
 - ✅ 카카오 OAuth2
-- ✅ JWT 토큰 갱신
+- ✅ Refresh Token 저장 및 재발급 API
+- ⚠️ 401 응답 시 자동 토큰 재발급 미구현
+- ⚠️ 운영용 API 인증 정책 전환 필요
 
 </td>
 <td width="33%">
 
 **📅 일정 관리**
 - ✅ Todo 생성/수정/삭제
-- ✅ Task 보드
-- ✅ Sprint 관리
-- ✅ 상태별 필터링
+- ✅ Todo 완료 상태 변경 및 필터링
+- 🧪 Task/Sprint UI 프로토타입
+- ⚠️ Todo JWT 사용자 연동 필요
 
 </td>
 </tr>
@@ -478,6 +477,8 @@ npm run dev
 ---
 
 ## 📡 API 문서
+
+> 아래 인증 표시는 클라이언트에서 JWT를 사용하는 의도된 흐름을 기준으로 합니다. 현재 `SecurityConfig`는 개발 편의를 위해 다수 경로를 `permitAll`로 허용하므로 운영 전 접근 정책 보완이 필요합니다.
 
 <details>
 <summary><b>🔐 인증 API</b></summary>
@@ -488,7 +489,7 @@ npm run dev
 | `POST` | `/api/auth/login` | 로그인 | ❌ |
 | `POST` | `/api/auth/logout` | 로그아웃 | ✅ |
 | `POST` | `/api/auth/refresh` | 토큰 갱신 | ❌ |
-| `GET` | `/api/auth/me` | 현재 사용자 정보 조회 | ✅ |
+| `GET` | `/api/users/me` | 현재 사용자 정보 조회 | ✅ |
 
 </details>
 
@@ -513,12 +514,14 @@ npm run dev
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| `GET` | `/api/projects/{id}/files` | 파일 트리 조회 | ✅ |
-| `POST` | `/api/projects/{id}/files` | 파일 생성 | ✅ |
-| `POST` | `/api/projects/{id}/folders` | 폴더 생성 | ✅ |
-| `GET` | `/api/files/{id}` | 파일 내용 조회 | ✅ |
-| `PUT` | `/api/files/{id}` | 파일 내용 수정 | ✅ |
-| `DELETE` | `/api/projects/{id}/files/{fileId}` | 파일 삭제 | ✅ |
+| `GET` | `/api/projects/{id}/tree` | 파일 트리 조회 | ❌ (현재 설정) |
+| `POST` | `/api/projects/{id}/files` | 파일 생성 | ❌ (현재 설정) |
+| `POST` | `/api/projects/{id}/folders` | 폴더 생성 | ❌ (현재 설정) |
+| `GET` | `/api/files/{id}` | 파일 메타데이터 조회 | ❌ (현재 설정) |
+| `POST` | `/api/files/{id}/upload-url` | S3 업로드 URL 발급 | ❌ (현재 설정) |
+| `GET` | `/api/files/{id}/content-url` | S3 다운로드 URL 발급 | ❌ (현재 설정) |
+| `DELETE` | `/api/projects/{id}/files/{fileId}` | 파일 삭제 | ❌ (현재 설정) |
+| `DELETE` | `/api/projects/{id}/folders/{folderId}` | 폴더 삭제 | ❌ (현재 설정) |
 
 </details>
 
@@ -527,7 +530,7 @@ npm run dev
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| `POST` | `/api/code/execute` | 코드 실행 요청 | ✅ |
+| `POST` | `/api/code/execute` | 코드 실행 요청 | ❌ (현재 설정) |
 
 **Request Body**
 ```json
@@ -541,10 +544,14 @@ npm run dev
 **Response**
 ```json
 {
-  "output": "Hello World\n",
-  "error": null,
-  "status": "Accepted",
-  "executionTime": "0.017s"
+  "success": true,
+  "data": {
+    "output": "Hello World\n",
+    "error": null,
+    "exitCode": 0,
+    "status": "Accepted",
+    "time": 0.017
+  }
 }
 ```
 
@@ -555,10 +562,10 @@ npm run dev
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| `GET` | `/api/chat/room/{projectId}/messages` | 채팅 기록 조회 | ✅ |
-| `WS` | `/ws-chat` | WebSocket 연결 | ✅ |
-| `SEND` | `/app/chat/message` | 메시지 전송 (STOMP) | ✅ |
-| `SUB` | `/topic/chat/room/{projectId}` | 메시지 구독 (STOMP) | ✅ |
+| `GET` | `/api/chat/room/{projectId}/messages` | 채팅 기록 조회 | ❌ (현재 설정) |
+| `WS` | `/ws-chat` | WebSocket 연결 | ❌ |
+| `SEND` | `/app/chat/message` | 메시지 전송 (STOMP) | JWT 사용 |
+| `SUB` | `/topic/chat/room/{projectId}` | 메시지 구독 (STOMP) | ❌ (권한 검증 필요) |
 
 </details>
 
@@ -567,8 +574,9 @@ npm run dev
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| `POST` | `/api/ai/review` | AI 코드 리뷰 요청 | ✅ |
-| `GET` | `/api/ai/reviews/{projectId}` | 리뷰 기록 조회 | ✅ |
+| `POST` | `/api/ai/review` | AI 코드 리뷰 요청 | ❌ (현재 설정) |
+| `GET` | `/api/ai/review/history?filePath={path}` | 파일별 리뷰 이력 조회 | ❌ (현재 설정) |
+| `GET` | `/api/ai/review/{id}` | 리뷰 상세 조회 | ❌ (현재 설정) |
 
 </details>
 
@@ -577,10 +585,11 @@ npm run dev
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
-| `GET` | `/api/todos` | Todo 목록 조회 | ✅ |
-| `POST` | `/api/todos` | Todo 생성 | ✅ |
-| `PUT` | `/api/todos/{id}` | Todo 수정 | ✅ |
-| `DELETE` | `/api/todos/{id}` | Todo 삭제 | ✅ |
+| `GET` | `/api/todos` | Todo 목록 조회 | ❌ (임시 사용자 ID) |
+| `POST` | `/api/todos` | Todo 생성 | ❌ (임시 사용자 ID) |
+| `PUT` | `/api/todos/{id}` | Todo 수정 | ❌ (임시 사용자 ID) |
+| `PATCH` | `/api/todos/{id}/toggle` | Todo 완료 상태 변경 | ❌ (임시 사용자 ID) |
+| `DELETE` | `/api/todos/{id}` | Todo 삭제 | ❌ (임시 사용자 ID) |
 
 </details>
 
@@ -665,13 +674,21 @@ PONG
 <details>
 <summary><b>⚡ WebSocket 연결 실패</b></summary>
 
-**문제:** 채팅 기능이 작동하지 않음
+**문제:** 배포 환경에서 STOMP 연결 후 인증된 채팅 메시지를 처리하지 못함
 
-**해결 방법:**
-1. Backend가 정상적으로 실행 중인지 확인
-2. CORS 설정 확인 (`application-dev.yml`의 `cors.allowed-origins`)
-3. Frontend의 WebSocket URL 확인 (`.env`의 `VITE_WS_URL`)
-4. 브라우저 개발자 도구 콘솔에서 WebSocket 연결 오류 확인
+**원인:**
+1. STOMP 연결 프레임에서 JWT가 전달되지 않으면 서버에 `Principal`이 설정되지 않음
+2. 운영 프론트엔드 도메인과 WebSocket URL 설정이 로컬 환경과 달라 연결에 실패할 수 있음
+
+**해결:**
+1. Frontend의 STOMP `connectHeaders`와 메시지 전송 헤더에 Bearer Token 추가
+2. Backend `ChannelInterceptor`에서 STOMP native `Authorization` 헤더의 JWT 검증
+3. 검증된 이메일로 `Principal`을 생성해 메시지 저장 시 사용자 ID 조회
+4. 운영 도메인을 CORS 허용 목록에 추가하고 `VITE_WS_URL`을 배포 주소로 설정
+
+**결과:** 인증된 사용자의 프로젝트별 채팅 송수신 및 메시지 저장 흐름을 연결함
+
+> 현재 채팅방 단위의 프로젝트 멤버 권한 검증은 추가 구현이 필요합니다.
 
 </details>
 
@@ -682,19 +699,19 @@ PONG
 | 이름 | 역할 | 담당 기능 |
 |------|------|-----------|
 | **팀원 A** | Backend | 인증/인가, JWT, 파일 시스템 API |
-| **팀원 B** | Backend | 채팅, WebSocket, 일정 관리 API, AI 리뷰 |
+| **팀원 B** | Backend | 채팅, WebSocket |
 | **팀원 C** | Frontend | 프로젝트 관리, 파일 트리, 에디터 통합 |
 | **팀원 D** | Frontend | 채팅 UI, 일정 관리 UI, AI 리뷰 UI |
-| **공통** | DevOps | Docker, CI/CD, AWS 배포 |
+| **공통** | DevOps | Docker 기반 개발·배포 환경 구성 |
 
 ---
 
 ## 📚 프로젝트를 통해 얻은 경험
 
 ### 기술적 성장
-- **풀스택 개발 경험**: 프론트엔드부터 백엔드, 데이터베이스, 배포까지 전 과정 경험
+- **풀스택 통합 경험**: 프론트엔드, 백엔드, 데이터베이스 실행 환경을 연결하고 기능 흐름 검증
 - **실시간 통신 구현**: WebSocket(STOMP)을 활용한 양방향 통신 시스템 구축
-- **보안 강화**: Spring Security와 JWT를 통한 안전한 인증/인가 시스템 구현
+- **인증 흐름 구현**: Spring Security JWT 필터와 STOMP 헤더 인증 처리
 - **외부 API 연동**: Judge0, OpenAI API를 활용한 실용적인 기능 통합
 - **상태 관리**: Zustand와 TanStack Query를 활용한 효율적인 클라이언트 상태 관리
 
@@ -705,7 +722,8 @@ PONG
 - **이슈 관리**: GitHub Issues를 통한 버그 추적 및 기능 요청 관리
 
 ### 문제 해결 능력
-- **성능 최적화**: Debounce를 활용한 자동 저장 최적화, Redis 캐싱
+- **자동 저장**: 활성 파일을 일정 주기로 저장하는 흐름 구성
+- **메시지 전달 구조**: Redis Pub/Sub을 통한 채팅 메시지 브로드캐스트
 - **에러 핸들링**: 전역 예외 처리 및 사용자 친화적 에러 메시지 제공
 - **확장성 고려**: 도메인 기반 모듈 설계로 기능 추가 용이
 
@@ -714,13 +732,17 @@ PONG
 ## 🚀 향후 개선 계획
 
 - [ ] **실시간 협업 편집**: Operational Transformation 또는 CRDT 기반 동시 편집
+- [ ] **채팅 권한 강화**: STOMP 구독 및 메시지 전송 시 프로젝트 멤버 검증
+- [ ] **운영 보안 정책**: 개발용 `permitAll` 제거 및 API별 인증·인가 정책 적용
+- [ ] **일정 기능 완성**: Todo 사용자 인증 연동 및 Task/Sprint 백엔드 구현
+- [ ] **자동화 테스트**: 인증, 권한, 채팅, 프로젝트 API 통합 테스트 추가
 - [ ] **코드 버전 관리**: Git 통합 및 커밋 기록 관리
 - [ ] **디버깅 기능**: Breakpoint 및 단계별 실행
 - [ ] **테마 커스터마이징**: 다크/라이트 모드 및 사용자 정의 테마
 - [ ] **플러그인 시스템**: 확장 가능한 플러그인 아키텍처
 - [ ] **코드 자동 완성 강화**: Language Server Protocol (LSP) 통합
 - [ ] **모바일 반응형**: 태블릿 및 모바일 환경 최적화
-- [ ] **Docker 통합**: 컨테이너 기반 코드 실행 환경 구축
+- [ ] **자체 코드 실행 환경**: 외부 Judge0 API 의존도를 낮출 격리 실행 환경 검토
 
 ---
 
